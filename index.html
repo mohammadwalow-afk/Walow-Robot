@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#090d1f" />
-  <title>WALOW BLUEPRINT PRO — استوديو التصميم الهندسي بالذكاء الاصطناعي</title>
+  <meta name="theme-color" content="#070b19" />
+  <title>WALOW BLUEPRINT PRO — استوديو التصميم الهندسي والمحاكاة 3D</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -29,22 +29,30 @@
     }
     .mono { font-family: 'JetBrains Mono', monospace; }
     .glass {
-      background: rgba(15, 22, 46, 0.82);
+      background: rgba(15, 22, 46, 0.86);
       backdrop-filter: blur(14px);
       border: 1px solid rgba(139, 92, 246, 0.25);
     }
     .glow-btn {
       background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-      box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.35);
       transition: all 0.2s ease;
     }
-    .glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(59, 130, 246, 0.65); }
+    .glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(59, 130, 246, 0.6); }
+    .glow-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .tab-active {
       background: linear-gradient(135deg, rgba(37,99,235,0.35), rgba(124,58,237,0.35));
       border-color: #8b5cf6;
       color: #fff;
     }
-    #viewport3d { width: 100%; height: 360px; border-radius: 14px; overflow: hidden; position: relative; background: radial-gradient(circle at center, #131c3d 0%, #060914 100%); }
+    #viewport3d {
+      width: 100%;
+      height: 410px;
+      border-radius: 14px;
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(circle at center, #131c3d 0%, #060914 100%);
+    }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
   </style>
@@ -52,23 +60,35 @@
 <body class="min-h-screen flex flex-col">
 
   <!-- الشريط العلوي -->
-  <header class="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between border-b border-indigo-500/30">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl glow-btn flex items-center justify-center font-black text-white text-lg">W</div>
-      <div>
-        <h1 class="font-black text-base md:text-lg tracking-wide text-white flex items-center gap-2">
-          WALOW BLUEPRINT <span class="text-xs px-2 py-0.5 rounded-full bg-purple-600/40 border border-purple-400/40 text-purple-200">PRO AI</span>
-        </h1>
-        <p class="text-[11px] text-blue-300/80">استوديو تصميم الهاردوير، 3D، الدوائر والبرمجة</p>
+  <header class="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between gap-2 border-b border-indigo-500/30">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-10 h-10 rounded-xl glow-btn flex items-center justify-center font-black text-white text-lg shrink-0">W</div>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="font-black text-base md:text-lg tracking-wide text-white truncate">WALOW BLUEPRINT</h1>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-purple-600/40 border border-purple-400/40 text-purple-200 font-bold">PRO AI STUDIO</span>
+        </div>
+        <p class="text-[11px] text-blue-300/80 truncate">استوديو تصميم الهاردوير، 3D، المحاكاة والبرمجة</p>
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
-      <button onclick="openApiModal()" id="apiStatusBtn" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition">
+    <div class="flex items-center gap-2 shrink-0">
+      <button onclick="saveCurrentProjectToLibrary()" type="button" class="px-3 py-2 rounded-xl text-xs font-bold border border-purple-500/50 bg-purple-500/15 text-purple-200 hover:bg-purple-500/25 transition">
+        💾 حفظ المشروع
+      </button>
+      <button onclick="openApiModal()" id="apiStatusBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition">
         🔑 مفتاح Gemini API
       </button>
     </div>
   </header>
+
+  <!-- شريط التنبيهات المدمج داخل الصفحة -->
+  <div id="toastBanner" class="hidden max-w-6xl w-full mx-auto px-3 md:px-6 pt-3">
+    <div id="toastBox" class="glass rounded-xl px-4 py-3 flex items-start justify-between gap-3 border text-xs md:text-sm">
+      <p id="toastMessage" class="leading-relaxed"></p>
+      <button onclick="hideToast()" type="button" class="text-slate-400 hover:text-white font-bold shrink-0">✕</button>
+    </div>
+  </div>
 
   <!-- المحتوى الرئيسي -->
   <main class="flex-1 max-w-6xl w-full mx-auto p-3 md:p-6 space-y-5">
@@ -76,10 +96,10 @@
     <!-- صندوق الإدخال الهندسي -->
     <section class="glass rounded-2xl p-4 md:p-6 shadow-2xl space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <span class="text-sm font-bold text-blue-300">🛠️ صف الجهاز أو الروبوت أو القطعة الذكية التي تريد ابتكارها:</span>
+        <span class="text-sm font-bold text-blue-300">🛠️ صف الجهاز أو السيارة أو الروبوت أو القطعة الذكية التي تريد ابتكارها:</span>
         <div class="flex items-center gap-2">
-          <label class="text-xs text-slate-400">مستوى الهندسة:</label>
-          <select id="engMode" class="bg-slate-900/90 border border-indigo-500/40 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+          <label for="engMode" class="text-xs text-slate-400">مستوى الهندسة:</label>
+          <select id="engMode" class="bg-slate-900/90 border border-indigo-500/40 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500">
             <option value="lite">Lite — نموذج سريع</option>
             <option value="pro" selected>Pro Engineering — هندسة متكاملة</option>
             <option value="industrial">Industrial — تصنيع احترافي</option>
@@ -87,44 +107,45 @@
         </div>
       </div>
 
-      <div class="relative">
-        <textarea id="promptInput" rows="3" placeholder="مثال: صمم دبابة استطلاع صغيرة متحكم بها عبر Wi-Fi مع كاميرا ليلية، حساس مسافات أمامي، بطارية ليثيوم، وهيكل قابل للطباعة ثلاثية الأبعاد..." class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
-        <button onclick="startVoiceInput()" title="إدخال صوتي" class="absolute left-3 bottom-3 w-9 h-9 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/60 border border-indigo-400/30 flex items-center justify-center text-white">
-          🎙️
-        </button>
-      </div>
+      <textarea id="promptInput" rows="3" placeholder="مثال: صمم سيارة روبوتية رباعية العجلات مع بكرات نقل حركة ومحرك أمامي وحساس مسافات وتحكم لاسلكي..." class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
 
       <!-- معاينة الصورة المرفوعة أو الرسم اليدوي -->
-      <div id="attachmentPreview" class="hidden flex items-center justify-between bg-slate-900/90 border border-purple-500/40 rounded-xl p-2.5">
-        <div class="flex items-center gap-3">
-          <img id="previewImg" class="w-14 h-14 object-cover rounded-lg border border-blue-400/40" />
-          <div>
-            <p class="text-xs font-bold text-purple-300" id="attachmentLabel">تم إرفاق مخطط / صورة للتحليل الهندسي</p>
+      <div id="attachmentPreview" class="hidden flex items-center justify-between bg-slate-900/90 border border-purple-500/40 rounded-xl p-2.5 gap-2">
+        <div class="flex items-center gap-3 min-w-0">
+          <img id="previewImg" alt="معاينة المرفق" class="w-14 h-14 object-cover rounded-lg border border-blue-400/40 shrink-0" />
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-purple-300 truncate" id="attachmentLabel">تم إرفاق مخطط / صورة للتحليل الهندسي</p>
             <p class="text-[11px] text-slate-400">سيقوم الذكاء الاصطناعي بتفكيك الأجزاء وبناء النموذج بناءً عليها</p>
           </div>
         </div>
-        <button onclick="clearAttachment()" class="text-xs px-2.5 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/40">حذف ✕</button>
+        <button onclick="clearAttachment()" type="button" class="text-xs px-2.5 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/40 shrink-0">حذف ✕</button>
       </div>
 
       <!-- شريط الأدوات وزر التوليد -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div class="flex flex-wrap items-center gap-2">
+          <button onclick="startVoiceInput()" type="button" class="px-3 py-2 rounded-xl bg-indigo-950/70 hover:bg-indigo-900/70 border border-indigo-400/30 text-xs font-semibold flex items-center gap-1.5 text-indigo-200">
+            🎙️ إملاء صوتي
+          </button>
           <label class="cursor-pointer px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5">
             🖼️ رفع صورة جهاز
             <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
           </label>
-          <button onclick="openSketchModal()" class="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-purple-500/30 text-xs font-semibold flex items-center gap-1.5">
+          <button onclick="openSketchModal()" type="button" class="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-purple-500/30 text-xs font-semibold flex items-center gap-1.5">
             ✏️ ارسم فكرتك يدوياً
           </button>
-          <button onclick="loadDemoProject('tank')" class="px-3 py-2 rounded-xl bg-blue-950/60 hover:bg-blue-900/60 border border-blue-400/20 text-xs text-blue-200">
+          <button onclick="loadDemoProject('car')" type="button" class="px-3 py-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-400/25 text-xs text-emerald-200">
+            🚗 تجربة: سيارة وبكرات
+          </button>
+          <button onclick="loadDemoProject('tank')" type="button" class="px-3 py-2 rounded-xl bg-blue-950/60 hover:bg-blue-900/60 border border-blue-400/20 text-xs text-blue-200">
             ⚡ تجربة: دبابة RC
           </button>
-          <button onclick="loadDemoProject('drone')" class="px-3 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-400/20 text-xs text-purple-200">
+          <button onclick="loadDemoProject('drone')" type="button" class="px-3 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-400/20 text-xs text-purple-200">
             🚁 تجربة: درون ذكي
           </button>
         </div>
 
-        <button onclick="generateHardware()" id="generateBtn" class="glow-btn px-6 py-2.5 rounded-xl font-bold text-sm text-white flex items-center gap-2">
+        <button onclick="generateHardware()" id="generateBtn" type="button" class="glow-btn px-6 py-2.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 w-full sm:w-auto">
           <span>🚀 ابتكار التصميم الهندسي</span>
         </button>
       </div>
@@ -134,26 +155,30 @@
     <div id="loadingBox" class="hidden glass rounded-2xl p-8 text-center space-y-3">
       <div class="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
       <p class="font-bold text-blue-300 text-base">جاري هندسة القطع، حساب التيار، وبناء المجسم ثلاثي الأبعاد...</p>
-      <p class="text-xs text-slate-400">يقوم المحرك الآن بتوليد الإحداثيات الهندسية، مخطط الأسلاك، والكود البرمجي</p>
+      <p class="text-xs text-slate-400" id="loadingModelInfo">النموذج النشط: gemini-3.8-flash</p>
     </div>
 
     <!-- منطقة النتائج المتكاملة -->
     <section id="resultsSection" class="hidden space-y-4">
-      
+
       <!-- بطاقة ملخص المشروع والمؤشرات الهندسية -->
       <div class="glass rounded-2xl p-5 space-y-4">
         <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-700/60 pb-4">
-          <div>
-            <div class="flex items-center gap-2">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
               <span class="px-2.5 py-0.5 rounded-md bg-blue-600/30 text-blue-300 text-xs font-bold" id="resCategory">HARDWARE SYSTEM</span>
               <span class="text-xs text-slate-400 mono" id="resPartsCount">0 PARTS</span>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 mono" id="resModelUsed">gemini-3.8-flash</span>
             </div>
-            <h2 class="text-xl md:text-2xl font-black text-white mt-1" id="resTitle">اسم المشروع</h2>
-            <p class="text-sm text-slate-300 mt-1" id="resSummary">وصف المشروع</p>
+            <h2 class="text-xl md:text-2xl font-black text-white pt-1" id="resTitle">اسم المشروع</h2>
+            <p class="text-sm text-slate-300" id="resSummary">وصف المشروع</p>
           </div>
-          <div class="flex gap-2">
-            <button onclick="exportReport()" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
-              📄 تصدير التقرير الهندسي
+          <div class="flex flex-wrap gap-2 shrink-0">
+            <button onclick="exportProjectJSON()" type="button" class="px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200 text-xs font-bold">
+              📦 تصدير JSON
+            </button>
+            <button onclick="exportReport()" type="button" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+              📄 تصدير التقرير
             </button>
           </div>
         </div>
@@ -181,29 +206,119 @@
 
       <!-- أزرار التبويبات -->
       <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-        <button onclick="switchTab('tab3d')" id="btn-tab3d" class="tab-btn tab-active glass py-2.5 px-3 rounded-xl text-xs font-bold text-center">🧊 مجسم 3D وتفكيك</button>
-        <button onclick="switchTab('tabBom')" id="btn-tabBom" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">🔩 قائمة القطع (BOM)</button>
-        <button onclick="switchTab('tabWiring')" id="btn-tabWiring" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">🔌 مخطط الأسلاك</button>
-        <button onclick="switchTab('tabCode')" id="btn-tabCode" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">💻 الكود والمحاكي</button>
-        <button onclick="switchTab('tabBuild')" id="btn-tabBuild" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">📋 خطوات التجميع</button>
+        <button onclick="switchTab('tab3d')" id="btn-tab3d" type="button" class="tab-btn tab-active glass py-2.5 px-3 rounded-xl text-xs font-bold text-center">🧊 مجسم 3D ومحاكاة الحركة</button>
+        <button onclick="switchTab('tabBom')" id="btn-tabBom" type="button" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">🔩 قائمة القطع (BOM)</button>
+        <button onclick="switchTab('tabWiring')" id="btn-tabWiring" type="button" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">🔌 مخطط الأسلاك</button>
+        <button onclick="switchTab('tabCode')" id="btn-tabCode" type="button" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">💻 الكود والمحاكي</button>
+        <button onclick="switchTab('tabBuild')" id="btn-tabBuild" type="button" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">📋 خطوات التجميع</button>
       </div>
 
-      <!-- التبويب 1: العارض ثلاثي الأبعاد -->
-      <div id="tab3d" class="tab-content glass rounded-2xl p-4 space-y-3">
+      <!-- التبويب 1: العارض ثلاثي الأبعاد ومحاكاة الحركة والتعديل -->
+      <div id="tab3d" class="tab-content glass rounded-2xl p-4 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <span class="text-xs font-bold text-blue-300">معاينة هندسية تفاعلية (اسحب للتدوير، قرّب للتكبير)</span>
+          <span class="text-xs font-bold text-blue-300">معاينة هندسية وحركية تفاعلية (اسحب للتدوير، قرّب للتكبير)</span>
           <div class="flex flex-wrap gap-2">
-            <button onclick="toggleExplode()" id="explodeBtn" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-xs font-bold text-white">
-              💥 تفكيك الأجزاء (Exploded View)
+            <button onclick="addCustomPartToScene()" type="button" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-xs font-bold text-emerald-200">
+              ➕ إضافة قطعة
             </button>
-            <button onclick="toggleWireframe()" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">
-              🕸️ وضع الهيكل الشبكي
+            <button onclick="toggleExplode()" id="explodeBtn" type="button" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-xs font-bold text-white">
+              💥 تفكيك الأجزاء
             </button>
-            <button onclick="exportOBJ()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-emerald-300">
-              ⬇️ تصدير 3D (.OBJ)
+            <button onclick="toggleWireframe()" type="button" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">
+              🕸️ هيكل شبكي
+            </button>
+            <button onclick="resetFullAssembly()" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200">
+              ↺ إعادة ضبط
+            </button>
+            <button onclick="exportOBJ()" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-emerald-300">
+              ⬇️ تصدير (.OBJ)
             </button>
           </div>
         </div>
+
+        <!-- لوحة التحكم بحركة القطع أو السيارة/الروبوت بالكامل -->
+        <div class="bg-slate-950/85 border border-indigo-500/35 rounded-xl p-3.5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-bold text-purple-300">⚙️ مختبر تحريك القطع والمركبات (Motion Lab):</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="toggleMotionPlayback()" id="motionPlayBtn" type="button" class="px-3 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-xs font-bold text-emerald-200">
+                ⏸️ إيقاف الحركة التلقائية
+              </button>
+              <button onclick="applyPresetMotionToAll()" type="button" class="px-3 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/40 text-xs font-bold text-indigo-200">
+                ✨ حركة تلقائية للقطع
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 items-center">
+            <div>
+              <label for="motionTargetSelect" class="text-[11px] text-slate-400 block mb-1">الهدف المتحرك:</label>
+              <select id="motionTargetSelect" onchange="syncMotionControlsFromTarget()" class="w-full bg-slate-900 border border-blue-500/30 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <option value="__ALL__">🚗 الروبوت / السيارة بالكامل</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="motionTypeSelect" class="text-[11px] text-slate-400 block mb-1">نوع الحركة:</label>
+              <select id="motionTypeSelect" onchange="updateSelectedMotionConfig()" class="w-full bg-slate-900 border border-purple-500/30 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <option value="none">ثابت (بدون حركة تلقائية)</option>
+                <option value="spin">دوران مستمر (بكرة / مروحة / عجلة)</option>
+                <option value="oscillate">تذبذب زاوي (برج / ذراع / محرك)</option>
+                <option value="linear">حركة خطية ذهاب وإياب</option>
+                <option value="path">مسار تلقائي دائري (للجهاز بالكامل)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="motionAxisSelect" class="text-[11px] text-slate-400 block mb-1">محور الحركة:</label>
+              <select id="motionAxisSelect" onchange="updateSelectedMotionConfig()" class="w-full bg-slate-900 border border-blue-500/30 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <option value="x">محور X (أفقي عرضي)</option>
+                <option value="y">محور Y (رأسي / برج / مروحة)</option>
+                <option value="z">محور Z (محاور العجلات / البكرات)</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="motionSpeedRange" class="text-[11px] text-slate-400 block mb-1">السرعة: <span id="motionSpeedValue" class="mono text-blue-300">1.5x</span></label>
+              <input type="range" id="motionSpeedRange" min="0.2" max="5" step="0.1" value="1.5" oninput="updateSelectedMotionConfig()" class="w-full accent-purple-500" />
+            </div>
+          </div>
+
+          <!-- تعديل أبعاد ولون وموضع القطعة المختارة مباشرة -->
+          <div id="partInspectorBox" class="hidden grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-800/80 items-end">
+            <div>
+              <label for="editSizeX" class="text-[10px] text-slate-400 block">العرض (X)</label>
+              <input type="number" step="0.1" id="editSizeX" onchange="applyPartTransformEdit()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs mono text-white" />
+            </div>
+            <div>
+              <label for="editSizeY" class="text-[10px] text-slate-400 block">الارتفاع (Y)</label>
+              <input type="number" step="0.1" id="editSizeY" onchange="applyPartTransformEdit()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs mono text-white" />
+            </div>
+            <div>
+              <label for="editSizeZ" class="text-[10px] text-slate-400 block">العمق (Z)</label>
+              <input type="number" step="0.1" id="editSizeZ" onchange="applyPartTransformEdit()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs mono text-white" />
+            </div>
+            <div>
+              <label for="editColor" class="text-[10px] text-slate-400 block">لون القطعة</label>
+              <input type="color" id="editColor" onchange="applyPartTransformEdit()" class="w-full h-7 bg-slate-900 border border-slate-700 rounded cursor-pointer" />
+            </div>
+            <button onclick="removeSelectedPart()" type="button" class="px-2.5 py-1.5 rounded-lg bg-red-600/20 hover:bg-red-600/40 border border-red-500/40 text-xs font-bold text-red-300">
+              🗑️ حذف القطعة
+            </button>
+          </div>
+
+          <!-- أزرار القيادة المباشرة للسيارة أو الروبوت بالكامل -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+            <span class="text-[11px] text-slate-400">قيادة السيارة / الروبوت كاملاً (أو استخدم أسهم لوحة المفاتيح):</span>
+            <div class="flex flex-wrap items-center gap-1.5" dir="ltr">
+              <button onclick="driveAssembly(0, 0.45, 0)" type="button" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">▲ للأمام</button>
+              <button onclick="driveAssembly(0, -0.45, 0)" type="button" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">▼ للخلف</button>
+              <button onclick="driveAssembly(0, 0, 0.25)" type="button" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-xs font-bold text-white">↶ يسار</button>
+              <button onclick="driveAssembly(0, 0, -0.25)" type="button" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-xs font-bold text-white">↷ يمين</button>
+            </div>
+          </div>
+        </div>
+
         <div id="viewport3d"></div>
         <div id="partsLegend" class="flex flex-wrap gap-2 pt-1"></div>
       </div>
@@ -226,7 +341,7 @@
 
       <!-- التبويب 3: مخطط توصيل الأسلاك SVG -->
       <div id="tabWiring" class="tab-content hidden glass rounded-2xl p-4 space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
           <h3 class="text-sm font-bold text-purple-300">مخطط توصيل الدائرة الإلكترونية (Auto-Generated Pinout)</h3>
           <span class="text-xs text-slate-400">تأكد من مطابقة الجهد (3.3V / 5V) قبل التشغيل</span>
         </div>
@@ -241,25 +356,24 @@
             <h3 class="text-sm font-bold text-blue-300" id="codeLangLabel">الكود البرمجي للمتحكم</h3>
             <p class="text-[11px] text-slate-400">جاهز للرفع مباشرة عبر Arduino IDE أو PlatformIO</p>
           </div>
-          <div class="flex gap-2">
-            <button onclick="copyCode()" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold">
+          <div class="flex flex-wrap gap-2">
+            <button onclick="copyCode()" type="button" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold">
               📋 نسخ الكود
             </button>
-            <button onclick="toggleWokwiSimulator()" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-xs font-bold text-emerald-200">
+            <button onclick="toggleWokwiSimulator()" type="button" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-xs font-bold text-emerald-200">
               ⚡ تشغيل محاكي الدوائر (Wokwi)
             </button>
           </div>
         </div>
 
-        <pre class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-emerald-300 mono overflow-x-auto max-h-96 dir-ltr text-left" dir="ltr"><code id="codeBlock"></code></pre>
+        <pre class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-emerald-300 mono overflow-x-auto max-h-96 text-left" dir="ltr"><code id="codeBlock"></code></pre>
 
-        <!-- نافذة محاكي Wokwi المدمجة -->
         <div id="wokwiBox" class="hidden space-y-2 pt-2 border-t border-slate-800">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-emerald-400">🔌 مختبر المحاكاة الحية (Wokwi Simulator) — الصق الكود أعلاه وجرب الدائرة:</span>
-            <button onclick="toggleWokwiSimulator()" class="text-xs text-red-400">إغلاق المحاكي ✕</button>
+            <button onclick="toggleWokwiSimulator()" type="button" class="text-xs text-red-400">إغلاق المحاكي ✕</button>
           </div>
-          <iframe src="https://wokwi.com/projects/new/esp32" class="w-full h-[460px] rounded-xl border border-indigo-500/40 bg-white" loading="lazy"></iframe>
+          <iframe src="https://wokwi.com/projects/new/esp32" title="Wokwi Simulator" class="w-full h-[460px] rounded-xl border border-indigo-500/40 bg-white" loading="lazy"></iframe>
         </div>
       </div>
 
@@ -275,56 +389,75 @@
 
     </section>
 
+    <!-- المشاريع المحفوظة محلياً -->
+    <section id="savedLibrarySection" class="hidden glass rounded-2xl p-4 md:p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-emerald-300">💾 المشاريع المحفوظة في مكتبتك</h3>
+        <span class="text-[11px] text-slate-400">محفوظة محلياً في المتصفح</span>
+      </div>
+      <div id="savedLibraryList" class="grid md:grid-cols-3 gap-3"></div>
+    </section>
+
     <!-- مشاريع المجتمع الجاهزة -->
     <section class="glass rounded-2xl p-4 md:p-5 space-y-3">
-      <div class="flex items-center justify-between">
-        <h3 class="text-sm font-bold text-purple-300">🌐 نماذج هندسية جاهزة للاستكشاف والتعديل الفوري</h3>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h3 class="text-sm font-bold text-purple-300">🌐 نماذج هندسية وحركية جاهزة للاستكشاف والتعديل الفوري</h3>
         <span class="text-[11px] text-slate-400">انقر لفتح التصميم في العارض 3D</span>
       </div>
       <div class="grid md:grid-cols-3 gap-3">
+        <div onclick="loadDemoProject('car')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-emerald-500/25 rounded-xl p-3.5 transition space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-emerald-400">VEHICLE & PULLEYS</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 mono">7 PARTS</span>
+          </div>
+          <h4 class="font-bold text-white text-sm">سيارة روبوتية رباعية العجلات وبكرات</h4>
+          <p class="text-xs text-slate-400">4 عجلات دوارة، بكرتا نقل حركة، محرك أمامي، وقيادة كاملة للسيارة.</p>
+        </div>
+
         <div onclick="loadDemoProject('tank')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-blue-500/25 rounded-xl p-3.5 transition space-y-1.5">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-blue-400">ROBOTICS</span>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-200">21 قطعة</span>
+            <span class="text-xs font-bold text-blue-400">ROBOTICS & FPV</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 mono">7 PARTS</span>
           </div>
           <h4 class="font-bold text-white text-sm">دبابة استطلاع مجنزرة RC Tank</h4>
-          <p class="text-xs text-slate-400">تحكم ESP32-CAM، محركين DC، برج دوار، وحساس تجنب العوائق.</p>
+          <p class="text-xs text-slate-400">تحكم ESP32-CAM، برج متذبذب، وحساس تجنب العوائق.</p>
         </div>
 
         <div onclick="loadDemoProject('drone')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-purple-500/25 rounded-xl p-3.5 transition space-y-1.5">
           <div class="flex justify-between items-center">
             <span class="text-xs font-bold text-purple-400">AEROSPACE</span>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200">18 قطعة</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 mono">6 PARTS</span>
           </div>
           <h4 class="font-bold text-white text-sm">درون رباعي المراوح ذاتي التوازن</h4>
-          <p class="text-xs text-slate-400">هيكل كربون، 4 محركات Brushless، حساس جيروسكوب MPU6050، وGPS.</p>
-        </div>
-
-        <div onclick="loadDemoProject('wearable')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-emerald-500/25 rounded-xl p-3.5 transition space-y-1.5">
-          <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-emerald-400">WEARABLE</span>
-            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">12 قطعة</span>
-          </div>
-          <h4 class="font-bold text-white text-sm">سوار ملاحة ذكي للمكفوفين</h4>
-          <p class="text-xs text-slate-400">حساسات ليزر ToF، محركات اهتزاز تفاعلية، وبطارية تدوم 48 ساعة.</p>
+          <p class="text-xs text-slate-400">هيكل مركزي، 4 مراوح دوارة، وحساس جيروسكوب MPU6050 للاتزان.</p>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- نافذة إعداد مفتاح Gemini API -->
+  <!-- نافذة إعداد مفتاح Gemini API والنموذج -->
   <div id="apiModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
     <div class="glass max-w-md w-full rounded-2xl p-5 space-y-4">
-      <h3 class="font-bold text-lg text-white">🔑 إعداد محرك الذكاء الاصطناعي (Gemini API)</h3>
+      <h3 class="font-bold text-lg text-white">🔑 إعداد محرك الذكاء الاصطناعي</h3>
       <p class="text-xs text-slate-300 leading-relaxed">
-        أدخل مفتاح <b>Google Gemini API</b> الخاص بك لتفعيل التوليد غير المحدود وتحليل الصور والرسومات. يتم حفظ المفتاح محلياً في متصفحك فقط.
+        أدخل مفتاح <b>Google Gemini API</b> الخاص بك وتأكد من اسم النموذج النشط. يتم حفظ البيانات محلياً في متصفحك فقط.
       </p>
-      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white mono focus:outline-none" />
-      <div class="flex justify-between items-center pt-2">
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-400 underline">احصل على مفتاح مجاني من هنا ↗</a>
+
+      <div class="space-y-1.5">
+        <label for="apiKeyInput" class="text-xs font-bold text-blue-300 block">مفتاح API:</label>
+        <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white mono focus:outline-none focus:border-purple-500" />
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="modelNameInput" class="text-xs font-bold text-purple-300 block">اسم النموذج (Model):</label>
+        <input type="text" id="modelNameInput" placeholder="gemini-3.8-flash" class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3.5 py-2 text-sm text-white mono focus:outline-none focus:border-purple-500" />
+      </div>
+
+      <div class="flex justify-between items-center pt-2 gap-2">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-400 underline">احصل على مفتاح من AI Studio ↗</a>
         <div class="flex gap-2">
-          <button onclick="closeApiModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold">إلغاء</button>
-          <button onclick="saveApiKey()" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">حفظ المفتاح</button>
+          <button onclick="closeApiModal()" type="button" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold">إلغاء</button>
+          <button onclick="saveApiKey()" type="button" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">حفظ</button>
         </div>
       </div>
     </div>
@@ -335,64 +468,114 @@
     <div class="glass max-w-lg w-full rounded-2xl p-4 space-y-3">
       <div class="flex items-center justify-between">
         <h3 class="font-bold text-sm text-purple-300">✏️ ارسم مخطط الجهاز بيدك وسيحوله الذكاء الاصطناعي إلى واقع</h3>
-        <button onclick="closeSketchModal()" class="text-slate-400 hover:text-white">✕</button>
+        <button onclick="closeSketchModal()" type="button" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <canvas id="sketchCanvas" width="460" height="300" class="w-full bg-slate-950 border border-blue-500/40 rounded-xl touch-none cursor-crosshair"></canvas>
       <div class="flex justify-between items-center">
-        <button onclick="clearSketch()" class="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs font-bold">مسح اللوحة</button>
-        <button onclick="saveSketch()" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">اعتماد الرسم للتحليل ✓</button>
+        <button onclick="clearSketch()" type="button" class="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs font-bold">مسح اللوحة</button>
+        <button onclick="saveSketch()" type="button" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">اعتماد الرسم للتحليل ✓</button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- المتغيرات العامة ---
+    const DEFAULT_MODEL = 'gemini-3.8-flash';
     let currentProject = null;
     let attachedImageBase64 = null;
-    let attachedMimeType = "image/png";
+    let attachedMimeType = 'image/png';
     let scene, camera, renderer, controls, modelGroup;
+    let animFrameId = null;
     let isExploded = false;
     let isWireframe = false;
+    let motionPlaying = true;
+    let motionClock = 0;
 
-    // --- تهيئة التطبيق ---
     window.addEventListener('DOMContentLoaded', () => {
       updateApiButtonState();
       initSketchPad();
-      // تحميل مشروع افتراضي للعرض الفوري
-      loadDemoProject('tank');
+      renderSavedLibrary();
+      const savedProject = localStorage.getItem('walow_last_project');
+      if (savedProject) {
+        try {
+          renderProject(JSON.parse(savedProject), false);
+          return;
+        } catch (_) {}
+      }
+      loadDemoProject('car');
     });
 
+    window.addEventListener('keydown', (e) => {
+      if (!modelGroup || document.getElementById('tab3d').classList.contains('hidden')) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') { e.preventDefault(); driveAssembly(0, 0.45, 0); }
+      else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') { e.preventDefault(); driveAssembly(0, -0.45, 0); }
+      else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); driveAssembly(0, 0, 0.25); }
+      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); driveAssembly(0, 0, -0.25); }
+    });
+
+    function showToast(msg, type = 'info') {
+      const banner = document.getElementById('toastBanner');
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastMessage');
+      text.textContent = msg;
+      box.className = 'glass rounded-xl px-4 py-3 flex items-start justify-between gap-3 border text-xs md:text-sm ' + (
+        type === 'error'
+          ? 'border-red-500/50 bg-red-950/50 text-red-200'
+          : type === 'success'
+            ? 'border-emerald-500/50 bg-emerald-950/50 text-emerald-200'
+            : 'border-blue-500/40 bg-slate-900/90 text-blue-100'
+      );
+      banner.classList.remove('hidden');
+    }
+
+    function hideToast() { document.getElementById('toastBanner').classList.add('hidden'); }
+
+    function getActiveModel() {
+      const saved = (localStorage.getItem('walow_gemini_model') || '').trim();
+      return saved.replace(/^models\//, '') || DEFAULT_MODEL;
+    }
+
     function updateApiButtonState() {
-      const key = localStorage.getItem('walow_gemini_key');
+      const key = (localStorage.getItem('walow_gemini_key') || '').trim();
+      const model = getActiveModel();
+      document.getElementById('loadingModelInfo').textContent = `النموذج النشط: ${model}`;
       const btn = document.getElementById('apiStatusBtn');
-      if (key && key.startsWith('AIza')) {
-        btn.innerHTML = '🟢 المحرك متصل (API Ready)';
-        btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500/50 bg-emerald-500/15 text-emerald-300';
+      if (key) {
+        btn.textContent = `🟢 متصل (${model})`;
+        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold border border-emerald-500/50 bg-emerald-500/15 text-emerald-300 shrink-0';
+      } else {
+        btn.textContent = '🔑 مفتاح Gemini API';
+        btn.className = 'px-3 py-2 rounded-xl text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition shrink-0';
       }
     }
 
     function openApiModal() {
       document.getElementById('apiKeyInput').value = localStorage.getItem('walow_gemini_key') || '';
+      document.getElementById('modelNameInput').value = getActiveModel();
       document.getElementById('apiModal').classList.remove('hidden');
     }
+
     function closeApiModal() { document.getElementById('apiModal').classList.add('hidden'); }
+
     function saveApiKey() {
-      const val = document.getElementById('apiKeyInput').value.trim();
-      localStorage.setItem('walow_gemini_key', val);
+      const key = document.getElementById('apiKeyInput').value.trim();
+      const model = document.getElementById('modelNameInput').value.trim().replace(/^models\//, '') || DEFAULT_MODEL;
+      localStorage.setItem('walow_gemini_key', key);
+      localStorage.setItem('walow_gemini_model', model);
       updateApiButtonState();
       closeApiModal();
+      showToast(`تم حفظ الإعدادات بنجاح. النموذج المحدد: ${model}`, 'success');
     }
 
-    // --- التعامل مع الصور والرسم ---
     function handleImageUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
-      attachedMimeType = file.type;
+      attachedMimeType = file.type || 'image/png';
       const reader = new FileReader();
       reader.onload = (ev) => {
         attachedImageBase64 = ev.target.result.split(',')[1];
         document.getElementById('previewImg').src = ev.target.result;
-        document.getElementById('attachmentLabel').innerText = `صورة مرفقة: ${file.name}`;
+        document.getElementById('attachmentLabel').textContent = `صورة مرفقة: ${file.name}`;
         document.getElementById('attachmentPreview').classList.remove('hidden');
       };
       reader.readAsDataURL(file);
@@ -404,7 +587,6 @@
       document.getElementById('imageUpload').value = '';
     }
 
-    // لوحة الرسم
     let drawing = false;
     function initSketchPad() {
       const canvas = document.getElementById('sketchCanvas');
@@ -447,48 +629,55 @@
       attachedImageBase64 = dataUrl.split(',')[1];
       attachedMimeType = 'image/png';
       document.getElementById('previewImg').src = dataUrl;
-      document.getElementById('attachmentLabel').innerText = 'رسم هندسي يدوي مرفق';
+      document.getElementById('attachmentLabel').textContent = 'رسم هندسي يدوي مرفق';
       document.getElementById('attachmentPreview').classList.remove('hidden');
       closeSketchModal();
     }
 
-    // --- الإدخال الصوتي ---
     function startVoiceInput() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) return alert('متصفحك لا يدعم الإدخال الصوتي المباشر.');
+      if (!SpeechRecognition) {
+        showToast('متصفحك لا يدعم الإدخال الصوتي المباشر؛ يمكنك الكتابة مباشرة.', 'error');
+        return;
+      }
       const rec = new SpeechRecognition();
       rec.lang = 'ar-SA';
       rec.onresult = (e) => {
-        document.getElementById('promptInput').value += ' ' + e.results[0][0].transcript;
+        const current = document.getElementById('promptInput').value.trim();
+        document.getElementById('promptInput').value = (current ? current + ' ' : '') + e.results[0][0].transcript;
       };
+      rec.onerror = () => showToast('تعذر التقاط الصوت، تأكد من صلاحية الميكروفون.', 'error');
       rec.start();
     }
 
-    // --- الاتصال بمحرك Gemini API ---
     async function generateHardware() {
-      const apiKey = localStorage.getItem('walow_gemini_key');
+      hideToast();
+      const apiKey = (localStorage.getItem('walow_gemini_key') || '').trim();
+      const modelName = getActiveModel();
       if (!apiKey) {
         openApiModal();
+        showToast('يرجى إدخال مفتاح Gemini API أولاً لتفعيل التوليد.', 'error');
         return;
       }
 
       const promptText = document.getElementById('promptInput').value.trim();
       const mode = document.getElementById('engMode').value;
       if (!promptText && !attachedImageBase64) {
-        alert('يرجى كتابة وصف للجهاز أو إرفاق صورة/رسم أولاً.');
+        showToast('يرجى كتابة وصف للجهاز أو إرفاق صورة/رسم أولاً.', 'error');
         return;
       }
 
+      document.getElementById('loadingModelInfo').textContent = `النموذج النشط: ${modelName}`;
       document.getElementById('loadingBox').classList.remove('hidden');
       document.getElementById('generateBtn').disabled = true;
 
-      const systemPrompt = `أنت كبير مهندسي ابتكار الهاردوير والأنظمة المدمجة (Hardware & Robotics Architect).
+      const systemPrompt = `أنت كبير مهندسي ابتكار الهاردوير والأنظمة المدمجة والمحاكاة ثلاثية الأبعاد.
 مهمتك تحويل فكرة المستخدم (أو الصورة/الرسم المرفق) إلى تصميم هندسي متكامل بصيغة JSON فقط بدون أي نص إضافي أو علامات markdown.
 مستوى الهندسة المطلوب: ${mode}.
 يجب أن يلتزم ردك بالبنية التالية بدقة:
 {
   "title": "اسم المشروع بالعربية",
-  "category": "تصنيف بالإنجليزية مثل ROBOTICS / WEARABLE / IOT",
+  "category": "تصنيف بالإنجليزية مثل VEHICLE / ROBOTICS / WEARABLE",
   "summary": "ملخص هندسي دقيق للمشروع بالعربية",
   "estimatedCost": "$45",
   "powerSpecs": "7.4V / 12W",
@@ -498,14 +687,17 @@
   "parts": [
     {
       "name": "اسم القطعة",
-      "type": "Microcontroller / Sensor / Actuator / Chassis / Battery",
+      "type": "Motor / Pulley / Wheel / Sensor / Chassis / Battery",
       "role": "وظيفتها في الجهاز",
       "alternative": "بديل أرخص",
       "price": "$8",
       "color": "#3b82f6",
       "shape": "box أو cylinder أو sphere",
       "size": [2.0, 0.5, 1.5],
-      "pos": [0, 0, 0]
+      "pos": [0, 0, 0],
+      "motionType": "none أو spin أو oscillate أو linear",
+      "motionAxis": "x أو y أو z",
+      "motionSpeed": 1.5
     }
   ],
   "wiring": [
@@ -516,90 +708,94 @@
   "buildSteps": ["الخطوة الأولى...", "الخطوة الثانية..."],
   "safetyNotes": "تحذيرات مهمة حول الجهد والحرارة والتوصيل"
 }
-ملاحظة مهمة لمصفوفة parts: صمم من 6 إلى 12 قطعة بحيث تشكل إحداثيات pos وأحجام size مجسماً ثلاثي الأبعاد منطقياً ومتماسكاً للجهاز (مثلاً الهيكل في الأسفل [0,0,0]، العجلات أو المراوح على الأطراف، المتحكم والحساسات فوق الهيكل).`;
+صمم من 5 إلى 10 قطع بحيث تشكل إحداثيات pos وأحجام size مجسماً ثلاثي الأبعاد منطقياً ومتماسكاً، واجعل العجلات أو البكرات أو المراوح تحمل motionType: "spin" والمحاور أو الأبراج تحمل "oscillate" أو "spin" حسب وظيفتها.`;
 
-      const contentsParts = [{ text: systemPrompt + "\n\nطلب المستخدم: " + (promptText || "حلل الصورة/الرسم المرفق وصمم الجهاز الهندسي الكامل له.") }];
+      const contentsParts = [{ text: systemPrompt + '\n\nطلب المستخدم: ' + (promptText || 'حلل الصورة/الرسم المرفق وصمم الجهاز الهندسي الكامل له.') }];
       if (attachedImageBase64) {
         contentsParts.push({ inline_data: { mime_type: attachedMimeType, data: attachedImageBase64 } });
       }
 
       try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: contentsParts }],
-            generationConfig: { response_mime_type: "application/json", temperature: 0.4 }
+            generationConfig: { response_mime_type: 'application/json', temperature: 0.4 }
           })
         });
 
         const data = await res.json();
-        if (data.error) throw new Error(data.error.message);
+        if (data.error) throw new Error(data.error.message || 'خطأ من واجهة Gemini API');
 
-        const rawText = data.candidates[0].content.parts[0].text;
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const cleanJson = rawText.replace(/```json|```/g, '').trim();
         const projectData = JSON.parse(cleanJson);
-        renderProject(projectData);
+        projectData._modelUsed = modelName;
+        renderProject(projectData, true);
+        showToast(`تم توليد التصميم الهندسي والمحاكاة بنجاح باستخدام ${modelName}.`, 'success');
       } catch (err) {
-        alert('حدث خطأ أثناء الاتصال بالمحرك: ' + err.message);
+        showToast(`تعذر إتمام التوليد (${modelName}): ${err.message}`, 'error');
       } finally {
         document.getElementById('loadingBox').classList.add('hidden');
         document.getElementById('generateBtn').disabled = false;
       }
     }
 
-    // --- عرض بيانات المشروع في الواجهة ---
-    function renderProject(data) {
+    function renderProject(data, saveToStorage = true) {
       currentProject = data;
+      if (saveToStorage) {
+        try { localStorage.setItem('walow_last_project', JSON.stringify(data)); } catch (_) {}
+      }
+
+      const parts = Array.isArray(data.parts) ? data.parts : [];
       document.getElementById('resultsSection').classList.remove('hidden');
-      document.getElementById('resTitle').innerText = data.title;
-      document.getElementById('resCategory').innerText = data.category || 'HARDWARE';
-      document.getElementById('resSummary').innerText = data.summary;
-      document.getElementById('resPartsCount').innerText = `${data.parts.length} PARTS`;
+      document.getElementById('resTitle').textContent = data.title || 'مشروع هندسي';
+      document.getElementById('resCategory').textContent = data.category || 'HARDWARE';
+      document.getElementById('resSummary').textContent = data.summary || '';
+      document.getElementById('resPartsCount').textContent = `${parts.length} PARTS`;
+      document.getElementById('resModelUsed').textContent = data._modelUsed || getActiveModel();
 
-      document.getElementById('statCost').innerText = data.estimatedCost;
-      document.getElementById('statPower').innerText = data.powerSpecs;
-      document.getElementById('statBattery').innerText = data.batteryLife;
-      document.getElementById('statDifficulty').innerText = data.difficulty;
+      document.getElementById('statCost').textContent = data.estimatedCost || '--';
+      document.getElementById('statPower').textContent = data.powerSpecs || '--';
+      document.getElementById('statBattery').textContent = data.batteryLife || '--';
+      document.getElementById('statDifficulty').textContent = data.difficulty || '--';
 
-      // 1. جدول القطع BOM
-      const bomBody = document.getElementById('bomTableBody');
-      bomBody.innerHTML = data.parts.map(p => `
-        <tr class="hover:bg-slate-900/60">
-          <td class="py-2.5 px-3 font-bold text-white flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full inline-block" style="background:${p.color || '#3b82f6'}"></span>
-            ${p.name}
-          </td>
-          <td class="py-2.5 px-3 text-slate-400 mono text-xs">${p.type}</td>
-          <td class="py-2.5 px-3 text-slate-300">${p.role}</td>
-          <td class="py-2.5 px-3 text-blue-300">${p.alternative || '-'}</td>
-          <td class="py-2.5 px-3 font-bold text-emerald-400 mono">${p.price}</td>
-        </tr>
-      `).join('');
-
-      // 2. رسم مخطط الأسلاك SVG
+      renderBomTable(parts);
       renderWiringDiagram(data);
+      document.getElementById('codeLangLabel').textContent = `الكود البرمجي (${data.codeLanguage || 'C++'})`;
+      document.getElementById('codeBlock').textContent = data.firmwareCode || '';
 
-      // 3. الكود البرمجي
-      document.getElementById('codeLangLabel').innerText = `الكود البرمجي (${data.codeLanguage || 'C++'})`;
-      document.getElementById('codeBlock').textContent = data.firmwareCode;
-
-      // 4. خطوات التجميع
-      document.getElementById('buildStepsList').innerHTML = data.buildSteps.map((step, i) => `
+      const steps = Array.isArray(data.buildSteps) ? data.buildSteps : [];
+      document.getElementById('buildStepsList').innerHTML = steps.map((step, i) => `
         <div class="flex items-start gap-3 bg-slate-950/60 border border-slate-800 rounded-xl p-3">
           <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">${i + 1}</span>
           <p class="text-xs md:text-sm text-slate-200">${step}</p>
         </div>
       `).join('');
-      document.getElementById('safetyNotes').innerText = data.safetyNotes;
+      document.getElementById('safetyNotes').textContent = data.safetyNotes || 'افحص التوصيلات والجهد قبل توصيل البطارية.';
 
-      // 5. بناء المشهد ثلاثي الأبعاد
-      build3DScene(data.parts);
+      build3DScene(parts);
     }
 
-    // --- رسم مخطط التوصيل الكهربائي بصيغة SVG ---
+    function renderBomTable(parts) {
+      document.getElementById('resPartsCount').textContent = `${parts.length} PARTS`;
+      document.getElementById('bomTableBody').innerHTML = parts.map(p => `
+        <tr class="hover:bg-slate-900/60">
+          <td class="py-2.5 px-3 font-bold text-white flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full inline-block shrink-0" style="background:${p.color || '#3b82f6'}"></span>
+            ${p.name}
+          </td>
+          <td class="py-2.5 px-3 text-slate-400 mono text-xs">${p.type || '-'}</td>
+          <td class="py-2.5 px-3 text-slate-300">${p.role || '-'}</td>
+          <td class="py-2.5 px-3 text-blue-300">${p.alternative || '-'}</td>
+          <td class="py-2.5 px-3 font-bold text-emerald-400 mono">${p.price || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
     function renderWiringDiagram(data) {
-      const wires = data.wiring || [];
+      const wires = Array.isArray(data.wiring) ? data.wiring : [];
       const h = Math.max(220, wires.length * 46 + 60);
       let svg = `<svg width="620" height="${h}" viewBox="0 0 620 ${h}" xmlns="http://www.w3.org/2000/svg" class="max-w-full">
         <rect x="20" y="20" width="170" height="${h - 40}" rx="12" fill="#1e1b4b" stroke="#6366f1" stroke-width="2"/>
@@ -620,32 +816,36 @@
       document.getElementById('wiringSvgContainer').innerHTML = svg;
 
       document.getElementById('wiringList').innerHTML = wires.map(w => `
-        <div class="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex items-center justify-between">
+        <div class="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex items-center justify-between gap-2">
           <span class="mono text-blue-300">${w.from} ➔ ${w.to}</span>
           <span class="text-slate-400">${w.note || ''}</span>
         </div>
       `).join('');
     }
 
-    // --- محرك Three.js لبناء المجسم ثلاثي الأبعاد ---
     function build3DScene(parts) {
       const container = document.getElementById('viewport3d');
+      if (animFrameId) cancelAnimationFrame(animFrameId);
       container.innerHTML = '';
       isExploded = false;
+      motionClock = 0;
+      motionPlaying = true;
+      document.getElementById('motionPlayBtn').textContent = '⏸️ إيقاف الحركة التلقائية';
 
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
-      camera.position.set(5, 4, 6);
+      const width = container.clientWidth || 320;
+      const height = container.clientHeight || 410;
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 200);
+      camera.position.set(6, 4.5, 7);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setSize(width, height);
       container.appendChild(renderer.domElement);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
 
-      // الإضاءة والشبكة الأرضية
-      const grid = new THREE.GridHelper(12, 24, 0x3b82f6, 0x1e293b);
+      const grid = new THREE.GridHelper(32, 48, 0x3b82f6, 0x1e293b);
       grid.position.y = -1.2;
       scene.add(grid);
 
@@ -653,51 +853,286 @@
       const dirLight = new THREE.DirectionalLight(0xa855f7, 0.9);
       dirLight.position.set(5, 10, 7);
       scene.add(dirLight);
-      const blueLight = new THREE.PointLight(0x3b82f6, 1, 20);
+      const blueLight = new THREE.PointLight(0x3b82f6, 1, 30);
       blueLight.position.set(-5, 4, -5);
       scene.add(blueLight);
 
       modelGroup = new THREE.Group();
+      modelGroup.userData = {
+        motionType: 'none',
+        motionAxis: 'y',
+        motionSpeed: 1.5
+      };
+
+      const targetSelect = document.getElementById('motionTargetSelect');
+      targetSelect.innerHTML = '<option value="__ALL__">🚗 الروبوت / السيارة بالكامل</option>';
+
       const legend = document.getElementById('partsLegend');
       legend.innerHTML = '';
 
       parts.forEach((p, idx) => {
-        const s = p.size || [1, 0.5, 1];
-        const pos = p.pos || [0, idx * 0.4, 0];
-        let geom;
-        if (p.shape === 'cylinder') {
-          geom = new THREE.CylinderGeometry(s[0] / 2, s[0] / 2, s[1], 24);
-        } else if (p.shape === 'sphere') {
-          geom = new THREE.SphereGeometry(s[0] / 2, 24, 24);
-        } else {
-          geom = new THREE.BoxGeometry(s[0], s[1], s[2]);
-        }
-
+        const s = Array.isArray(p.size) && p.size.length === 3 ? p.size : [1, 0.5, 1];
+        const pos = Array.isArray(p.pos) && p.pos.length === 3 ? p.pos : [0, idx * 0.4, 0];
+        const geom = createGeometryForPart(p.shape, s);
+        const colorHex = p.color || '#3b82f6';
         const mat = new THREE.MeshStandardMaterial({
-          color: p.color || '#3b82f6',
+          color: colorHex,
           metalness: 0.45,
           roughness: 0.35,
           wireframe: isWireframe
         });
 
         const mesh = new THREE.Mesh(geom, mat);
-        mesh.position.set(pos[0], pos[1], pos[2]);
-        mesh.userData = { origPos: new THREE.Vector3(pos[0], pos[1], pos[2]), name: p.name };
+        const origVec = new THREE.Vector3(pos[0], pos[1], pos[2]);
+        mesh.position.copy(origVec);
+        const partName = p.name || `Part_${idx + 1}`;
+        mesh.userData = {
+          origPos: origVec,
+          basePos: origVec.clone(),
+          size: [...s],
+          color: colorHex,
+          shape: p.shape || 'box',
+          name: partName,
+          motionType: p.motionType || 'none',
+          motionAxis: p.motionAxis || 'y',
+          motionSpeed: typeof p.motionSpeed === 'number' ? p.motionSpeed : 1.5
+        };
         modelGroup.add(mesh);
 
-        legend.innerHTML += `<span class="text-[11px] px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 flex items-center gap-1.5">
-          <i class="w-2.5 h-2.5 rounded-full inline-block" style="background:${p.color || '#3b82f6'}"></i>${p.name}
-        </span>`;
+        const opt = document.createElement('option');
+        opt.value = String(idx);
+        opt.textContent = `🔧 قطعة: ${partName}`;
+        targetSelect.appendChild(opt);
+
+        legend.innerHTML += `<button onclick="selectPartForMotion(${idx})" type="button" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-700 flex items-center gap-1.5">
+          <i class="w-2.5 h-2.5 rounded-full inline-block" style="background:${colorHex}"></i>${partName}
+        </button>`;
       });
 
       scene.add(modelGroup);
+      syncMotionControlsFromTarget();
 
-      function animate() {
-        requestAnimationFrame(animate);
+      let prevTime = performance.now();
+      function animate(now) {
+        animFrameId = requestAnimationFrame(animate);
+        const dt = Math.min(0.05, (now - prevTime) / 1000);
+        prevTime = now;
+
+        if (motionPlaying) {
+          motionClock += dt;
+          applyMotionToObject(modelGroup, dt, true);
+          modelGroup.children.forEach((child) => applyMotionToObject(child, dt, false));
+        }
+
         controls.update();
         renderer.render(scene, camera);
       }
-      animate();
+      animFrameId = requestAnimationFrame(animate);
+    }
+
+    function createGeometryForPart(shape, size) {
+      if (shape === 'cylinder') {
+        return new THREE.CylinderGeometry(size[0] / 2, size[0] / 2, size[1], 24);
+      }
+      if (shape === 'sphere') {
+        return new THREE.SphereGeometry(size[0] / 2, 24, 24);
+      }
+      return new THREE.BoxGeometry(size[0], size[1], size[2]);
+    }
+
+    function applyMotionToObject(obj, dt, isAssemblyRoot) {
+      const mType = obj.userData.motionType || 'none';
+      if (mType === 'none') return;
+      const axis = obj.userData.motionAxis || 'y';
+      const speed = obj.userData.motionSpeed || 1.5;
+
+      if (mType === 'spin') {
+        obj.rotation[axis] += speed * 2.2 * dt;
+      } else if (mType === 'oscillate') {
+        obj.rotation[axis] = Math.sin(motionClock * speed * 2.5) * 0.55;
+      } else if (mType === 'linear' && obj.userData.basePos) {
+        const offset = Math.sin(motionClock * speed * 2.0) * 0.6;
+        obj.position[axis] = obj.userData.basePos[axis] + offset;
+      } else if (mType === 'path' && isAssemblyRoot) {
+        const radius = 2.4;
+        const angle = motionClock * speed * 0.7;
+        obj.position.x = Math.cos(angle) * radius - radius;
+        obj.position.z = Math.sin(angle) * radius;
+        obj.rotation.y = -angle;
+      }
+    }
+
+    function selectPartForMotion(idx) {
+      document.getElementById('motionTargetSelect').value = String(idx);
+      syncMotionControlsFromTarget();
+    }
+
+    function syncMotionControlsFromTarget() {
+      if (!modelGroup) return;
+      const val = document.getElementById('motionTargetSelect').value;
+      const inspector = document.getElementById('partInspectorBox');
+      if (val === '__ALL__') {
+        inspector.classList.add('hidden');
+        document.getElementById('motionTypeSelect').value = modelGroup.userData.motionType || 'none';
+        document.getElementById('motionAxisSelect').value = modelGroup.userData.motionAxis || 'y';
+        const spd = modelGroup.userData.motionSpeed || 1.5;
+        document.getElementById('motionSpeedRange').value = spd;
+        document.getElementById('motionSpeedValue').textContent = `${Number(spd).toFixed(1)}x`;
+        return;
+      }
+
+      const mesh = modelGroup.children[Number(val)];
+      if (!mesh) return;
+      inspector.classList.remove('hidden');
+      document.getElementById('motionTypeSelect').value = mesh.userData.motionType || 'none';
+      document.getElementById('motionAxisSelect').value = mesh.userData.motionAxis || 'y';
+      const spd = mesh.userData.motionSpeed || 1.5;
+      document.getElementById('motionSpeedRange').value = spd;
+      document.getElementById('motionSpeedValue').textContent = `${Number(spd).toFixed(1)}x`;
+
+      const sz = mesh.userData.size || [1, 0.5, 1];
+      document.getElementById('editSizeX').value = sz[0];
+      document.getElementById('editSizeY').value = sz[1];
+      document.getElementById('editSizeZ').value = sz[2];
+      document.getElementById('editColor').value = mesh.userData.color || '#3b82f6';
+    }
+
+    function updateSelectedMotionConfig() {
+      if (!modelGroup) return;
+      const val = document.getElementById('motionTargetSelect').value;
+      const mType = document.getElementById('motionTypeSelect').value;
+      const mAxis = document.getElementById('motionAxisSelect').value;
+      const mSpeed = parseFloat(document.getElementById('motionSpeedRange').value) || 1.5;
+      document.getElementById('motionSpeedValue').textContent = `${mSpeed.toFixed(1)}x`;
+
+      const targetObj = val === '__ALL__' ? modelGroup : modelGroup.children[Number(val)];
+      if (!targetObj) return;
+
+      targetObj.userData.motionType = mType;
+      targetObj.userData.motionAxis = mAxis;
+      targetObj.userData.motionSpeed = mSpeed;
+      if (mType === 'none') {
+        targetObj.rotation.set(0, 0, 0);
+        if (targetObj.userData.basePos) targetObj.position.copy(targetObj.userData.basePos);
+        else if (val === '__ALL__') targetObj.position.set(0, 0, 0);
+      }
+    }
+
+    function applyPartTransformEdit() {
+      if (!modelGroup) return;
+      const val = document.getElementById('motionTargetSelect').value;
+      if (val === '__ALL__') return;
+      const idx = Number(val);
+      const mesh = modelGroup.children[idx];
+      if (!mesh) return;
+
+      const sx = Math.max(0.1, parseFloat(document.getElementById('editSizeX').value) || 1);
+      const sy = Math.max(0.1, parseFloat(document.getElementById('editSizeY').value) || 0.5);
+      const sz = Math.max(0.1, parseFloat(document.getElementById('editSizeZ').value) || 1);
+      const col = document.getElementById('editColor').value || '#3b82f6';
+
+      mesh.geometry.dispose();
+      mesh.geometry = createGeometryForPart(mesh.userData.shape, [sx, sy, sz]);
+      mesh.material.color.set(col);
+      mesh.userData.size = [sx, sy, sz];
+      mesh.userData.color = col;
+
+      if (currentProject && Array.isArray(currentProject.parts) && currentProject.parts[idx]) {
+        currentProject.parts[idx].size = [sx, sy, sz];
+        currentProject.parts[idx].color = col;
+        renderBomTable(currentProject.parts);
+      }
+    }
+
+    function addCustomPartToScene() {
+      if (!currentProject) return;
+      if (!Array.isArray(currentProject.parts)) currentProject.parts = [];
+      const count = currentProject.parts.length + 1;
+      const newPart = {
+        name: `بكرة/قطعة إضافية ${count}`,
+        type: 'Pulley / Actuator',
+        role: 'قطعة مضافة يدوياً في المشهد ثلاثي الأبعاد',
+        alternative: 'قياسي',
+        price: '$5',
+        color: '#38bdf8',
+        shape: 'cylinder',
+        size: [0.6, 0.3, 0.6],
+        pos: [0, 0.7, 0],
+        motionType: 'spin',
+        motionAxis: 'z',
+        motionSpeed: 2.0
+      };
+      currentProject.parts.push(newPart);
+      renderProject(currentProject, true);
+      selectPartForMotion(currentProject.parts.length - 1);
+      showToast('تمت إضافة قطعة جديدة إلى التصميم والمشهد 3D.', 'success');
+    }
+
+    function removeSelectedPart() {
+      if (!currentProject || !Array.isArray(currentProject.parts)) return;
+      const val = document.getElementById('motionTargetSelect').value;
+      if (val === '__ALL__') return;
+      const idx = Number(val);
+      if (currentProject.parts.length <= 1) {
+        showToast('يجب الإبقاء على قطعة واحدة على الأقل في التصميم.', 'error');
+        return;
+      }
+      currentProject.parts.splice(idx, 1);
+      renderProject(currentProject, true);
+      showToast('تم حذف القطعة المحددة من التصميم.', 'info');
+    }
+
+    function toggleMotionPlayback() {
+      motionPlaying = !motionPlaying;
+      document.getElementById('motionPlayBtn').textContent = motionPlaying
+        ? '⏸️ إيقاف الحركة التلقائية'
+        : '▶️ تشغيل الحركة التلقائية';
+    }
+
+    function applyPresetMotionToAll() {
+      if (!modelGroup) return;
+      modelGroup.children.forEach((mesh) => {
+        const lower = (mesh.userData.name || '').toLowerCase();
+        if (lower.includes('بكرة') || lower.includes('عجل') || lower.includes('مروحة') || lower.includes('pulley') || lower.includes('wheel') || lower.includes('prop')) {
+          mesh.userData.motionType = 'spin';
+          mesh.userData.motionAxis = lower.includes('مروحة') ? 'y' : 'z';
+          mesh.userData.motionSpeed = 2.2;
+        } else if (lower.includes('برج') || lower.includes('محرك') || lower.includes('ذراع') || lower.includes('turret') || lower.includes('motor')) {
+          mesh.userData.motionType = 'oscillate';
+          mesh.userData.motionAxis = 'y';
+          mesh.userData.motionSpeed = 1.4;
+        }
+      });
+      syncMotionControlsFromTarget();
+      showToast('تم تفعيل الحركة التلقائية المناسبة للبكرات والعجلات والمحركات.', 'info');
+    }
+
+    function driveAssembly(dx, dz, dyRot) {
+      if (!modelGroup) return;
+      modelGroup.position.x += dx;
+      modelGroup.position.z += dz;
+      modelGroup.rotation.y += dyRot;
+      modelGroup.children.forEach((child) => {
+        const lower = (child.userData.name || '').toLowerCase();
+        if (lower.includes('عجل') || lower.includes('بكرة') || lower.includes('جنزير') || lower.includes('wheel') || lower.includes('pulley')) {
+          child.rotation.z += (dz !== 0 ? dz * 1.5 : 0.35);
+        }
+      });
+    }
+
+    function resetFullAssembly() {
+      if (!modelGroup) return;
+      isExploded = false;
+      modelGroup.position.set(0, 0, 0);
+      modelGroup.rotation.set(0, 0, 0);
+      modelGroup.userData.motionType = 'none';
+      modelGroup.children.forEach((mesh) => {
+        mesh.position.copy(mesh.userData.origPos);
+        mesh.userData.basePos = mesh.userData.origPos.clone();
+        mesh.rotation.set(0, 0, 0);
+      });
+      syncMotionControlsFromTarget();
+      showToast('تمت إعادة ضبط موضع التجميع بالكامل.', 'info');
     }
 
     function toggleExplode() {
@@ -705,24 +1140,24 @@
       isExploded = !isExploded;
       modelGroup.children.forEach((mesh) => {
         const orig = mesh.userData.origPos;
-        if (isExploded) {
-          mesh.position.set(orig.x * 1.9, orig.y * 2.2 + 0.6, orig.z * 1.9);
-        } else {
-          mesh.position.copy(orig);
-        }
+        const nextPos = isExploded
+          ? new THREE.Vector3(orig.x * 1.9, orig.y * 2.2 + 0.6, orig.z * 1.9)
+          : orig.clone();
+        mesh.position.copy(nextPos);
+        mesh.userData.basePos = nextPos.clone();
       });
     }
 
     function toggleWireframe() {
       if (!modelGroup) return;
       isWireframe = !isWireframe;
-      modelGroup.children.forEach(m => m.material.wireframe = isWireframe);
+      modelGroup.children.forEach(m => { m.material.wireframe = isWireframe; });
     }
 
-    // تصدير مجسم 3D بصيغة OBJ لفتحه في Blender / Godot
     function exportOBJ() {
       if (!modelGroup) return;
-      let objContent = "# Exported from WALOW BLUEPRINT PRO\n";
+      modelGroup.updateMatrixWorld(true);
+      let objContent = '# Exported from WALOW BLUEPRINT PRO\n';
       let vertexOffset = 1;
       modelGroup.children.forEach((mesh, idx) => {
         objContent += `o Part_${idx}_${mesh.userData.name.replace(/\s+/g, '_')}\n`;
@@ -743,9 +1178,77 @@
         vertexOffset += posAttr.count;
       });
       downloadFile('walow_hardware_model.obj', objContent, 'text/plain');
+      showToast('تم تصدير المجسم ثلاثي الأبعاد بصيغة .OBJ بنجاح.', 'success');
     }
 
-    // --- التبويبات والأدوات المساعدة ---
+    function saveCurrentProjectToLibrary() {
+      if (!currentProject) return;
+      const list = getSavedLibraryList();
+      const item = {
+        id: 'proj_' + Date.now(),
+        savedAt: new Date().toLocaleDateString('ar'),
+        data: currentProject
+      };
+      list.unshift(item);
+      localStorage.setItem('walow_saved_library', JSON.stringify(list.slice(0, 15)));
+      renderSavedLibrary();
+      showToast(`تم حفظ "${currentProject.title}" في مكتبتك المحلية.`, 'success');
+    }
+
+    function getSavedLibraryList() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem('walow_saved_library') || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function renderSavedLibrary() {
+      const list = getSavedLibraryList();
+      const section = document.getElementById('savedLibrarySection');
+      const container = document.getElementById('savedLibraryList');
+      if (!list.length) {
+        section.classList.add('hidden');
+        return;
+      }
+      section.classList.remove('hidden');
+      container.innerHTML = list.map((item, i) => `
+        <div class="bg-slate-950/75 border border-emerald-500/25 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-slate-400">
+            <span class="text-emerald-300 font-bold">${item.data.category || 'PROJECT'}</span>
+            <span>${item.savedAt || ''}</span>
+          </div>
+          <h4 class="font-bold text-white text-sm truncate">${item.data.title || 'مشروع محفوظ'}</h4>
+          <div class="flex items-center justify-between pt-1">
+            <button onclick="openSavedLibraryItem(${i})" type="button" class="text-xs px-2.5 py-1 rounded bg-blue-600/30 text-blue-200 hover:bg-blue-600/50">فتح</button>
+            <button onclick="deleteSavedLibraryItem(${i})" type="button" class="text-xs px-2.5 py-1 rounded bg-red-600/20 text-red-300 hover:bg-red-600/40">حذف</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSavedLibraryItem(index) {
+      const list = getSavedLibraryList();
+      if (list[index]?.data) {
+        renderProject(list[index].data, true);
+        showToast(`تم فتح المشروع المحفوظ: ${list[index].data.title}`, 'info');
+      }
+    }
+
+    function deleteSavedLibraryItem(index) {
+      const list = getSavedLibraryList();
+      list.splice(index, 1);
+      localStorage.setItem('walow_saved_library', JSON.stringify(list));
+      renderSavedLibrary();
+    }
+
+    function exportProjectJSON() {
+      if (!currentProject) return;
+      downloadFile('walow_project.json', JSON.stringify(currentProject, null, 2), 'application/json');
+      showToast('تم تصدير ملف المشروع بصيغة JSON.', 'success');
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -759,8 +1262,12 @@
     }
 
     function copyCode() {
-      navigator.clipboard.writeText(document.getElementById('codeBlock').textContent);
-      alert('تم نسخ الكود البرمجي بنجاح!');
+      const code = document.getElementById('codeBlock').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        showToast('تم نسخ الكود البرمجي إلى الحافظة.', 'success');
+      }).catch(() => {
+        showToast('تعذر النسخ التلقائي؛ يمكنك تحديد الكود ونسخه يدوياً.', 'error');
+      });
     }
 
     function toggleWokwiSimulator() {
@@ -770,9 +1277,10 @@
     function exportReport() {
       if (!currentProject) return;
       const md = `# ${currentProject.title}\n\n${currentProject.summary}\n\n## القطع المطلوبة\n` +
-        currentProject.parts.map(p => `- **${p.name}** (${p.price}): ${p.role}`).join('\n') +
-        `\n\n## الكود البرمجي\n\`\`\`cpp\n${currentProject.firmwareCode}\n\`\`\``;
+        (currentProject.parts || []).map(p => `- **${p.name}** (${p.price}): ${p.role}`).join('\n') +
+        `\n\n## الكود البرمجي\n\`\`\`cpp\n${currentProject.firmwareCode || ''}\n\`\`\``;
       downloadFile('Blueprint_Engineering_Report.md', md, 'text/markdown');
+      showToast('تم تحميل التقرير الهندسي بصيغة Markdown.', 'success');
     }
 
     function downloadFile(filename, content, type) {
@@ -782,101 +1290,106 @@
       a.click();
     }
 
-    // --- مشاريع جاهزة للعرض الفوري بدون الحاجة لمفتاح API ---
     function loadDemoProject(type) {
       const demos = {
-        tank: {
-          title: "دبابة استطلاع مجنزرة ذكية (RC Tactical Tank)",
-          category: "ROBOTICS & FPV",
-          summary: "مركبة مجنزرة عالية العزم مزودة بكاميرا بث مباشر Wi-Fi، برج دوار 180 درجة، وحساس تجنب العوائق بالموجات فوق الصوتية.",
-          estimatedCost: "$54",
-          powerSpecs: "7.4V / 18W",
-          batteryLife: "2.5 ساعة",
-          difficulty: "متوسط",
-          controllerName: "ESP32-CAM",
+        car: {
+          title: 'سيارة روبوتية رباعية العجلات وبكرات نقل (4WD Pulley Rover)',
+          category: 'VEHICLE & PULLEYS',
+          summary: 'مركبة رباعية الدفع مزودة ببكرتي نقل حركة، محرك دفع أمامي، وحساس مسافات مع إمكانية تحريك كل بكرة أو عجلة أو قيادة السيارة بالكامل.',
+          estimatedCost: '$62',
+          powerSpecs: '12V / 24W',
+          batteryLife: '2.0 ساعة',
+          difficulty: 'متوسط',
+          controllerName: 'ESP32-S3',
           parts: [
-            { name: "الشاسيه الرئيسي 3D", type: "Chassis", role: "الهيكل الحامل للمحركات والبطارية", alternative: "ألواح أكرليك", price: "$6", color: "#334155", shape: "box", size: [2.6, 0.5, 1.8], pos: [0, 0, 0] },
-            { name: "الجنزير الأيمن", type: "Actuator", role: "نقل الحركة على التضاريس الوعرة", alternative: "عجلات مطاطية", price: "$9", color: "#0f172a", shape: "box", size: [2.8, 0.45, 0.35], pos: [0, -0.1, 1.05] },
-            { name: "الجنزير الأيسر", type: "Actuator", role: "نقل الحركة والتوجيه التفاضلي", alternative: "عجلات مطاطية", price: "$9", color: "#0f172a", shape: "box", size: [2.8, 0.45, 0.35], pos: [0, -0.1, -1.05] },
-            { name: "برج الكاميرا الدوار", type: "Servo Turret", role: "توجيه الكاميرا أفقياً", alternative: "تثبيت مباشر", price: "$4", color: "#3b82f6", shape: "cylinder", size: [0.9, 0.45, 0.9], pos: [0.2, 0.48, 0] },
-            { name: "وحدة ESP32-CAM", type: "Microcontroller", role: "المعالج الرئيسي وبث الفيديو", alternative: "ESP32 + OV2640", price: "$10", color: "#8b5cf6", shape: "box", size: [0.5, 0.4, 0.5], pos: [0.4, 0.85, 0] },
-            { name: "حساس المسافة HC-SR04", type: "Sensor", role: "منع الاصطدام التلقائي", alternative: "حساس ليزر VL53L0X", price: "$2", color: "#10b981", shape: "box", size: [0.2, 0.25, 0.7], pos: [1.35, 0.1, 0] },
-            { name: "بطارية Li-Po 2S", type: "Battery", role: "تغذية المحركات والمتحكم", alternative: "بطاريتين 18650", price: "$14", color: "#f59e0b", shape: "box", size: [1.1, 0.3, 0.8], pos: [-0.6, 0.4, 0] }
+            { name: 'هيكل السيارة الرئيسي', type: 'Chassis', role: 'حمل البطارية والمتحكم والمحور', alternative: 'شاسيه ألمنيوم', price: '$10', color: '#334155', shape: 'box', size: [2.8, 0.45, 1.7], pos: [0, 0, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'عجلة أمامية يمنى', type: 'Wheel', role: 'دفع وتوجيه أمامي', alternative: 'عجلة مطاطية 65mm', price: '$5', color: '#0f172a', shape: 'cylinder', size: [0.85, 0.35, 0.85], pos: [1.0, -0.15, 1.05], motionType: 'spin', motionAxis: 'z', motionSpeed: 2.2 },
+            { name: 'عجلة أمامية يسرى', type: 'Wheel', role: 'دفع وتوجيه أمامي', alternative: 'عجلة مطاطية 65mm', price: '$5', color: '#0f172a', shape: 'cylinder', size: [0.85, 0.35, 0.85], pos: [1.0, -0.15, -1.05], motionType: 'spin', motionAxis: 'z', motionSpeed: 2.2 },
+            { name: 'عجلة خلفية يمنى', type: 'Wheel', role: 'دفع خلفي عالي العزم', alternative: 'عجلة مطاطية 65mm', price: '$5', color: '#0f172a', shape: 'cylinder', size: [0.85, 0.35, 0.85], pos: [-1.0, -0.15, 1.05], motionType: 'spin', motionAxis: 'z', motionSpeed: 2.2 },
+            { name: 'عجلة خلفية يسرى', type: 'Wheel', role: 'دفع خلفي عالي العزم', alternative: 'عجلة مطاطية 65mm', price: '$5', color: '#0f172a', shape: 'cylinder', size: [0.85, 0.35, 0.85], pos: [-1.0, -0.15, -1.05], motionType: 'spin', motionAxis: 'z', motionSpeed: 2.2 },
+            { name: 'بكرة نقل الحركة الأمامية', type: 'Pulley', role: 'نقل العزم والحركة الدائرية', alternative: 'بكرة ألمنيوم GT2', price: '$6', color: '#3b82f6', shape: 'cylinder', size: [0.65, 0.3, 0.65], pos: [0.75, 0.45, 0], motionType: 'spin', motionAxis: 'z', motionSpeed: 3.0 },
+            { name: 'محرك تحريك علوي', type: 'Motor', role: 'تدوير البكرة والذراع الاختباري', alternative: 'محرك DC بتروس', price: '$8', color: '#8b5cf6', shape: 'box', size: [0.6, 0.5, 0.6], pos: [-0.65, 0.5, 0], motionType: 'oscillate', motionAxis: 'y', motionSpeed: 1.5 }
           ],
           wiring: [
-            { from: "ESP32 GPIO 12", to: "L298N IN1 (يمين)", wireColor: "#3b82f6", note: "دفع للأمام" },
-            { from: "ESP32 GPIO 13", to: "L298N IN2 (يسار)", wireColor: "#8b5cf6", note: "دفع عكسي" },
-            { from: "ESP32 GPIO 14", to: "Servo Turret PWM", wireColor: "#f59e0b", note: "تدوير البرج" },
-            { from: "ESP32 GPIO 15", to: "HC-SR04 Trig/Echo", wireColor: "#10b981", note: "قياس المسافة" }
+            { from: 'ESP32 GPIO 18', to: 'Drive Motor PWM', wireColor: '#3b82f6', note: 'سرعة واتجاه السيارة' },
+            { from: 'ESP32 GPIO 19', to: 'Pulley Motor Driver', wireColor: '#a855f7', note: 'تشغيل البكرة والمحرك' },
+            { from: 'ESP32 GPIO 21', to: 'Ultrasonic Sensor', wireColor: '#10b981', note: 'استشعار العوائق' }
           ],
-          codeLanguage: "C++ (ESP32 Arduino)",
-          firmwareCode: `#include <ESP32Servo.h>\n\n#define MOTOR_R 12\n#define MOTOR_L 13\n#define SERVO_PIN 14\n#define TRIG_PIN 15\n\nServo turret;\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(MOTOR_R, OUTPUT);\n  pinMode(MOTOR_L, OUTPUT);\n  turret.attach(SERVO_PIN);\n  turret.write(90);\n}\n\nvoid loop() {\n  // تحريك الدبابة للأمام مع مسح البرج\n  digitalWrite(MOTOR_R, HIGH);\n  digitalWrite(MOTOR_L, HIGH);\n  delay(1000);\n}`,
+          codeLanguage: 'C++ (ESP32 Car & Pulley)',
+          firmwareCode: `#define DRIVE_PWM 18\n#define PULLEY_PWM 19\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(DRIVE_PWM, OUTPUT);\n  pinMode(PULLEY_PWM, OUTPUT);\n}\n\nvoid loop() {\n  analogWrite(DRIVE_PWM, 200);\n  analogWrite(PULLEY_PWM, 160);\n  delay(1000);\n}`,
           buildSteps: [
-            "اطبع الشاسيه والبرج بتقنية 3D باستخدام مادة PETG لتحمل الصدمات.",
-            "ثبّت محركي الـ DC داخل الجنازير واربطهما بوحدة القيادة L298N.",
-            "ركّب محرك السيرفو في منتصف الشاسيه وثبّت فوقه وحدة ESP32-CAM.",
-            "وصّل منظم الجهد 5V لحماية الكاميرا من تيار البطارية المرتفع."
+            'ثبّت المحركات الأربع والعجلات على جانبي الهيكل الرئيسي وتأكد من حرية دورانها.',
+            'ركّب البكرة والمحرك العلوي في نقاط التثبيت المخصصة مع موازنة مركز الثقل.',
+            'اختبر حركة كل محرك وبكرة بشكل مستقل قبل توصيل البطارية الكاملة.'
           ],
-          safetyNotes: "لا توصل بطارية 7.4V مباشرة إلى مدخل 5V في ESP32-CAM؛ استخدم منظم جهد LM2596 مضبوط على 5 فولت بدقة."
+          safetyNotes: 'افصل الطاقة عن المحركات عند فحص التوصيلات أو تعديل شد البكرة.'
+        },
+        tank: {
+          title: 'دبابة استطلاع مجنزرة ذكية (RC Tactical Tank)',
+          category: 'ROBOTICS & FPV',
+          summary: 'مركبة مجنزرة عالية العزم مزودة بكاميرا بث مباشر Wi-Fi، برج متذبذب، وحساس تجنب العوائق بالموجات فوق الصوتية.',
+          estimatedCost: '$54',
+          powerSpecs: '7.4V / 18W',
+          batteryLife: '2.5 ساعة',
+          difficulty: 'متوسط',
+          controllerName: 'ESP32-CAM',
+          parts: [
+            { name: 'الشاسيه الرئيسي 3D', type: 'Chassis', role: 'الهيكل الحامل للمحركات والبطارية', alternative: 'ألواح أكرليك', price: '$6', color: '#334155', shape: 'box', size: [2.6, 0.5, 1.8], pos: [0, 0, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'الجنزير الأيمن', type: 'Actuator', role: 'نقل الحركة على التضاريس الوعرة', alternative: 'عجلات مطاطية', price: '$9', color: '#0f172a', shape: 'box', size: [2.8, 0.45, 0.35], pos: [0, -0.1, 1.05], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'الجنزير الأيسر', type: 'Actuator', role: 'نقل الحركة والتوجيه التفاضلي', alternative: 'عجلات مطاطية', price: '$9', color: '#0f172a', shape: 'box', size: [2.8, 0.45, 0.35], pos: [0, -0.1, -1.05], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'برج الكاميرا الدوار', type: 'Servo Turret', role: 'توجيه الكاميرا أفقياً', alternative: 'تثبيت مباشر', price: '$4', color: '#3b82f6', shape: 'cylinder', size: [0.9, 0.45, 0.9], pos: [0.2, 0.48, 0], motionType: 'oscillate', motionAxis: 'y', motionSpeed: 1.4 },
+            { name: 'وحدة ESP32-CAM', type: 'Microcontroller', role: 'المعالج الرئيسي وبث الفيديو', alternative: 'ESP32 + OV2640', price: '$10', color: '#8b5cf6', shape: 'box', size: [0.5, 0.4, 0.5], pos: [0.4, 0.85, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'حساس المسافة HC-SR04', type: 'Sensor', role: 'منع الاصطدام التلقائي', alternative: 'حساس ليزر VL53L0X', price: '$2', color: '#10b981', shape: 'box', size: [0.2, 0.25, 0.7], pos: [1.35, 0.1, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'بطارية Li-Po 2S', type: 'Battery', role: 'تغذية المحركات والمتحكم', alternative: 'بطاريتين 18650', price: '$14', color: '#f59e0b', shape: 'box', size: [1.1, 0.3, 0.8], pos: [-0.6, 0.4, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 }
+          ],
+          wiring: [
+            { from: 'ESP32 GPIO 12', to: 'L298N IN1 (يمين)', wireColor: '#3b82f6', note: 'دفع للأمام' },
+            { from: 'ESP32 GPIO 13', to: 'L298N IN2 (يسار)', wireColor: '#8b5cf6', note: 'دفع عكسي' },
+            { from: 'ESP32 GPIO 14', to: 'Servo Turret PWM', wireColor: '#f59e0b', note: 'تدوير البرج' },
+            { from: 'ESP32 GPIO 15', to: 'HC-SR04 Trig/Echo', wireColor: '#10b981', note: 'قياس المسافة' }
+          ],
+          codeLanguage: 'C++ (ESP32 Arduino)',
+          firmwareCode: `#include <ESP32Servo.h>\n\n#define MOTOR_R 12\n#define MOTOR_L 13\n#define SERVO_PIN 14\n\nServo turret;\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(MOTOR_R, OUTPUT);\n  pinMode(MOTOR_L, OUTPUT);\n  turret.attach(SERVO_PIN);\n  turret.write(90);\n}\n\nvoid loop() {\n  digitalWrite(MOTOR_R, HIGH);\n  digitalWrite(MOTOR_L, HIGH);\n  delay(1000);\n}`,
+          buildSteps: [
+            'اطبع الشاسيه والبرج بتقنية 3D باستخدام مادة PETG لتحمل الصدمات.',
+            'ثبّت محركي الـ DC داخل الجنازير واربطهما بوحدة القيادة L298N.',
+            'ركّب محرك السيرفو في منتصف الشاسيه وثبّت فوقه وحدة ESP32-CAM.',
+            'وصّل منظم الجهد 5V لحماية الكاميرا من تيار البطارية المرتفع.'
+          ],
+          safetyNotes: 'لا توصل بطارية 7.4V مباشرة إلى مدخل 5V في ESP32-CAM؛ استخدم منظم جهد LM2596 مضبوط على 5 فولت بدقة.'
         },
         drone: {
-          title: "درون رباعي المراوح ذاتي التوازن (Quadcopter X4)",
-          category: "AEROSPACE",
-          summary: "طائرة مسيّرة خفيفة الوزن مزودة بنظام تثبيت الارتفاع والاتجاه مع إمكانية العودة التلقائية لنقطة الإقلاع.",
-          estimatedCost: "$88",
-          powerSpecs: "11.1V / 95W",
-          batteryLife: "18 دقيقة",
-          difficulty: "متقدم",
-          controllerName: "ESP32-S3 Flight Controller",
+          title: 'درون رباعي المراوح ذاتي التوازن (Quadcopter X4)',
+          category: 'AEROSPACE',
+          summary: 'طائرة مسيّرة خفيفة الوزن مزودة بنظام تثبيت الارتفاع والاتجاه مع إمكانية العودة التلقائية لنقطة الإقلاع.',
+          estimatedCost: '$88',
+          powerSpecs: '11.1V / 95W',
+          batteryLife: '18 دقيقة',
+          difficulty: 'متقدم',
+          controllerName: 'ESP32-S3 Flight Controller',
           parts: [
-            { name: "الإطار المركزي", type: "Frame", role: "تجميع الأذرع والبطارية", alternative: "إطار F450", price: "$12", color: "#1e293b", shape: "box", size: [1.2, 0.3, 1.2], pos: [0, 0, 0] },
-            { name: "مروحة أمامية يمنى", type: "Propeller", role: "توليد الرفع (CCW)", alternative: "مراوح 5 إنش", price: "$15", color: "#3b82f6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [1.1, 0.25, 1.1] },
-            { name: "مروحة أمامية يسرى", type: "Propeller", role: "توليد الرفع (CW)", alternative: "مراوح 5 إنش", price: "$15", color: "#8b5cf6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [1.1, 0.25, -1.1] },
-            { name: "مروحة خلفية يمنى", type: "Propeller", role: "توليد الرفع (CW)", alternative: "مراوح 5 إنش", price: "$15", color: "#8b5cf6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [-1.1, 0.25, 1.1] },
-            { name: "مروحة خلفية يسرى", type: "Propeller", role: "توليد الرفع (CCW)", alternative: "مراوح 5 إنش", price: "$15", color: "#3b82f6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [-1.1, 0.25, -1.1] },
-            { name: "حساس التوازن MPU6050", type: "Sensor", role: "قياس الميلان والتسارع 6 محاور", alternative: "BMI160", price: "$4", color: "#10b981", shape: "box", size: [0.4, 0.15, 0.4], pos: [0, 0.25, 0] }
+            { name: 'الإطار المركزي', type: 'Frame', role: 'تجميع الأذرع والبطارية', alternative: 'إطار F450', price: '$12', color: '#1e293b', shape: 'box', size: [1.2, 0.3, 1.2], pos: [0, 0, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 },
+            { name: 'مروحة أمامية يمنى', type: 'Propeller', role: 'توليد الرفع (CCW)', alternative: 'مراوح 5 إنش', price: '$15', color: '#3b82f6', shape: 'cylinder', size: [1.1, 0.1, 1.1], pos: [1.1, 0.25, 1.1], motionType: 'spin', motionAxis: 'y', motionSpeed: 4.5 },
+            { name: 'مروحة أمامية يسرى', type: 'Propeller', role: 'توليد الرفع (CW)', alternative: 'مراوح 5 إنش', price: '$15', color: '#8b5cf6', shape: 'cylinder', size: [1.1, 0.1, 1.1], pos: [1.1, 0.25, -1.1], motionType: 'spin', motionAxis: 'y', motionSpeed: -4.5 },
+            { name: 'مروحة خلفية يمنى', type: 'Propeller', role: 'توليد الرفع (CW)', alternative: 'مراوح 5 إنش', price: '$15', color: '#8b5cf6', shape: 'cylinder', size: [1.1, 0.1, 1.1], pos: [-1.1, 0.25, 1.1], motionType: 'spin', motionAxis: 'y', motionSpeed: -4.5 },
+            { name: 'مروحة خلفية يسرى', type: 'Propeller', role: 'توليد الرفع (CCW)', alternative: 'مراوح 5 إنش', price: '$15', color: '#3b82f6', shape: 'cylinder', size: [1.1, 0.1, 1.1], pos: [-1.1, 0.25, -1.1], motionType: 'spin', motionAxis: 'y', motionSpeed: 4.5 },
+            { name: 'حساس التوازن MPU6050', type: 'Sensor', role: 'قياس الميلان والتسارع 6 محاور', alternative: 'BMI160', price: '$4', color: '#10b981', shape: 'box', size: [0.4, 0.15, 0.4], pos: [0, 0.25, 0], motionType: 'none', motionAxis: 'y', motionSpeed: 1.0 }
           ],
           wiring: [
-            { from: "ESP32 GPIO 4..7", to: "4x ESC Signal", wireColor: "#3b82f6", note: "تحكم سرعة المحركات" },
-            { from: "ESP32 SDA/SCL", to: "MPU6050 Gyro", wireColor: "#10b981", note: "ناقل I2C للتوازن" }
+            { from: 'ESP32 GPIO 4..7', to: '4x ESC Signal', wireColor: '#3b82f6', note: 'تحكم سرعة المحركات' },
+            { from: 'ESP32 SDA/SCL', to: 'MPU6050 Gyro', wireColor: '#10b981', note: 'ناقل I2C للتوازن' }
           ],
-          codeLanguage: "C++ (PID Flight Loop)",
-          firmwareCode: `#include <Wire.h>\nvoid setup() {\n  Wire.begin();\n  Serial.begin(115200);\n  // تهيئة حساس الجيروسكوب ومخارج PWM للمحركات\n}\nvoid loop() {\n  // حلقة PID لتعديل سرعة المراوح 250 مرة في الثانية\n}`,
+          codeLanguage: 'C++ (PID Flight Loop)',
+          firmwareCode: `#include <Wire.h>\nvoid setup() {\n  Wire.begin();\n  Serial.begin(115200);\n}\nvoid loop() {\n  // حلقة PID لتعديل سرعة المراوح\n}`,
           buildSteps: [
-            "ثبّت المحركات الأربعة على أطراف الأذرع وتأكد من اتجاه دوران كل مروحة.",
-            "ضع حساس MPU6050 في مركز ثقل الطائرة تماماً لتقليل الاهتزازات.",
-            "عاير وحدات التحكم بالسرعة (ESC) قبل تركيب المراوح."
+            'ثبّت المحركات الأربعة على أطراف الأذرع وتأكد من اتجاه دوران كل مروحة.',
+            'ضع حساس MPU6050 في مركز ثقل الطائرة تماماً لتقليل الاهتزازات.',
+            'عاير وحدات التحكم بالسرعة (ESC) قبل تركيب المراوح.'
           ],
-          safetyNotes: "قم دائماً بفك المراوح أثناء برمجة الدرون أو اختباره على الطاولة لتجنب الإصابات."
-        },
-        wearable: {
-          title: "سوار الملاحة الذكي بالنبض (Haptic Nav Band)",
-          category: "WEARABLE TECH",
-          summary: "سوار معصم خفيف يرشد مرتديه عبر نبضات اهتزاز دقيقة لتجنب العوائق أو اتباع مسار GPS بدون الحاجة للنظر للشاشة.",
-          estimatedCost: "$29",
-          powerSpecs: "3.7V / 1.2W",
-          batteryLife: "48 ساعة",
-          difficulty: "سهل",
-          controllerName: "ESP32-C3 Mini",
-          parts: [
-            { name: "هيكل السوار المرن", type: "Chassis", role: "تثبيت القطع حول المعصم", alternative: "حزام سيليكون", price: "$4", color: "#1e293b", shape: "cylinder", size: [1.6, 0.6, 1.6], pos: [0, 0, 0] },
-            { name: "حساس ليزر VL53L0X", type: "Sensor", role: "قياس المسافة بدقة مليمترية", alternative: "حساس IR", price: "$6", color: "#3b82f6", shape: "box", size: [0.4, 0.3, 0.3], pos: [0.85, 0.1, 0] },
-            { name: "محرك اهتزاز Haptic", type: "Actuator", role: "تنبيه المستخدم بالاهتزاز", alternative: "Buzzer", price: "$3", color: "#8b5cf6", shape: "cylinder", size: [0.3, 0.15, 0.3], pos: [0, 0.35, 0.7] }
-          ],
-          wiring: [
-            { from: "ESP32-C3 SDA/SCL", to: "VL53L0X Laser", wireColor: "#3b82f6", note: "قراءة المسافة" },
-            { from: "ESP32-C3 GPIO 3", to: "Haptic Motor", wireColor: "#a855f7", note: "نبض متغير الشدة" }
-          ],
-          codeLanguage: "C++ (Low Power BLE)",
-          firmwareCode: `void setup() {\n  pinMode(3, OUTPUT);\n}\nvoid loop() {\n  // زيادة تردد الاهتزاز كلما اقترب العائق\n  analogWrite(3, 180);\n  delay(200);\n}`,
-          buildSteps: [
-            "الحم أسلاك حساس الليزر ومحرك الاهتزاز بمتحكم ESP32-C3 Mini.",
-            "أدخل الدائرة وبطارية 400mAh داخل الغلاف المطبوع بمادة TPU المرنة."
-          ],
-          safetyNotes: "تأكد من عزل البطارية جيداً عن الجلد واستخدام دائرة شحن TP4056 محمية."
+          safetyNotes: 'قم دائماً بفك المراوح أثناء برمجة الدرون أو اختباره على الطاولة لتجنب الإصابات.'
         }
       };
-      renderProject(demos[type]);
+      renderProject(demos[type], true);
     }
   </script>
 </body>
