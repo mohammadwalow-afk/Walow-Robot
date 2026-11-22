@@ -107,7 +107,7 @@
         </div>
       </div>
 
-      <textarea id="promptInput" rows="3" placeholder="اكتب أي آلة أو ابتكار يخطر في بالك... مثال: آلة فرز ذكية بالبكرات والسيور، رافعة هيدروليكية صغيرة، سيارة روبوتية، ساعة ذكية، أو أي اختراع جديد" class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
+      <textarea id="promptInput" rows="3" placeholder="اكتب أي آلة أو ابتكار يخطر في بالك... مثال: إنشاء آلة حصادة قمح، رافعة هيدروليكية، سيارة روبوتية، أو أي اختراع جديد" class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
 
       <!-- معاينة الصورة المرفوعة أو الرسم اليدوي -->
       <div id="attachmentPreview" class="hidden flex items-center justify-between bg-slate-900/90 border border-purple-500/40 rounded-xl p-2.5 gap-2">
@@ -440,7 +440,7 @@
     <div class="glass max-w-md w-full rounded-2xl p-5 space-y-4">
       <h3 class="font-bold text-lg text-white">🔑 إعداد محرك الذكاء الاصطناعي</h3>
       <p class="text-xs text-slate-300 leading-relaxed">
-        أدخل مفتاح <b>Google Gemini API</b> الخاص بك وتأكد من اسم النموذج النشط. يتم حفظ البيانات محلياً في متصفحك فقط.
+        أدخل مفتاح <b>Google Gemini API</b> الخاص بك. إذا واجه النموذج المختار ضغطاً مؤقتاً، سيقوم النظام تلقائياً بتجربة النماذج البديلة المتاحة عند الضغط على زر الاستدعاء.
       </p>
 
       <div class="space-y-1.5">
@@ -449,7 +449,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <label for="modelNameInput" class="text-xs font-bold text-purple-300 block">اسم النموذج (Model):</label>
+        <label for="modelNameInput" class="text-xs font-bold text-purple-300 block">النموذج الأساسي (Primary Model):</label>
         <input type="text" id="modelNameInput" placeholder="gemini-3.8-flash" class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3.5 py-2 text-sm text-white mono focus:outline-none focus:border-purple-500" />
       </div>
 
@@ -480,6 +480,12 @@
 
   <script>
     const DEFAULT_MODEL = 'gemini-3.8-flash';
+    const FALLBACK_MODELS = [
+      'gemini-3.8-flash',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash'
+    ];
     let currentProject = null;
     let attachedImageBase64 = null;
     let attachedMimeType = 'image/png';
@@ -494,7 +500,6 @@
       updateApiButtonState();
       initSketchPad();
       renderSavedLibrary();
-      // لا يتم استدعاء الذكاء الاصطناعي تلقائياً عند التحميل؛ يبدأ بعرض نموذج محلي جاهز حتى تضغط زر الطلب
       loadDemoProject('car');
     });
 
@@ -529,10 +534,16 @@
       return saved.replace(/^models\//, '') || DEFAULT_MODEL;
     }
 
+    function getModelQueue() {
+      const primary = getActiveModel();
+      const set = new Set([primary, ...FALLBACK_MODELS]);
+      return Array.from(set);
+    }
+
     function updateApiButtonState() {
       const key = (localStorage.getItem('walow_gemini_key') || '').trim();
       const model = getActiveModel();
-      document.getElementById('loadingModelInfo').textContent = `النموذج النشط: ${model}`;
+      document.getElementById('loadingModelInfo').textContent = `النموذج الأساسي: ${model}`;
       const btn = document.getElementById('apiStatusBtn');
       if (key) {
         btn.textContent = `🟢 متصل (${model})`;
@@ -558,7 +569,7 @@
       localStorage.setItem('walow_gemini_model', model);
       updateApiButtonState();
       closeApiModal();
-      showToast(`تم حفظ الإعدادات بنجاح. النموذج المحدد: ${model}`, 'success');
+      showToast(`تم حفظ الإعدادات بنجاح. النموذج الأساسي: ${model}`, 'success');
     }
 
     function handleImageUpload(e) {
@@ -644,11 +655,33 @@
       rec.start();
     }
 
-    // استدعاء الذكاء الاصطناعي عند الطلب فقط عند الضغط على الزر المخصص
+    async function callGeminiWithModel(apiKey, modelName, contentsParts) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: contentsParts }],
+          generationConfig: { response_mime_type: 'application/json', temperature: 0.45 }
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        const msg = data.error?.message || `HTTP ${res.status}`;
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
+      }
+
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const cleanJson = rawText.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanJson);
+    }
+
+    // استدعاء عند الطلب مع تبديل تلقائي بين النماذج عند حدوث ضغط مؤقت أو عدم توفر نموذج
     async function requestAiOnDemand() {
       hideToast();
       const apiKey = (localStorage.getItem('walow_gemini_key') || '').trim();
-      const modelName = getActiveModel();
       if (!apiKey) {
         openApiModal();
         showToast('يرجى إدخال مفتاح Gemini API أولاً ثم اضغط زر الاستدعاء عند الطلب.', 'error');
@@ -662,7 +695,7 @@
         return;
       }
 
-      document.getElementById('loadingModelInfo').textContent = `النموذج النشط: ${modelName}`;
+      const modelQueue = getModelQueue();
       document.getElementById('loadingBox').classList.remove('hidden');
       document.getElementById('generateBtn').disabled = true;
 
@@ -672,7 +705,7 @@
 يجب أن يلتزم ردك بالبنية التالية بدقة:
 {
   "title": "اسم الآلة أو الابتكار بالعربية",
-  "category": "تصنيف مثل UNIVERSAL MACHINE / INVENTION / ROBOTICS / MECHANISM",
+  "category": "تصنيف مثل AGRICULTURAL MACHINE / UNIVERSAL MACHINE / INVENTION",
   "summary": "شرح هندسي لكيفية عمل الآلة أو الابتكار بالعربية",
   "estimatedCost": "$45",
   "powerSpecs": "12V / 24W",
@@ -710,31 +743,28 @@
         contentsParts.push({ inline_data: { mime_type: attachedMimeType, data: attachedImageBase64 } });
       }
 
-      try {
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: contentsParts }],
-            generationConfig: { response_mime_type: 'application/json', temperature: 0.45 }
-          })
-        });
-
-        const data = await res.json();
-        if (data.error) throw new Error(data.error.message || 'خطأ من واجهة Gemini API');
-
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        const cleanJson = rawText.replace(/```json|```/g, '').trim();
-        const projectData = JSON.parse(cleanJson);
-        projectData._modelUsed = modelName;
-        renderProject(projectData);
-        showToast(`تمت الاستجابة لطلبك وتصميم الآلة بنجاح باستخدام ${modelName}.`, 'success');
-      } catch (err) {
-        showToast(`تعذر إتمام الطلب (${modelName}): ${err.message}`, 'error');
-      } finally {
-        document.getElementById('loadingBox').classList.add('hidden');
-        document.getElementById('generateBtn').disabled = false;
+      let lastError = null;
+      for (const modelName of modelQueue) {
+        document.getElementById('loadingModelInfo').textContent = `جاري المحاولة عبر النموذج: ${modelName}...`;
+        try {
+          const projectData = await callGeminiWithModel(apiKey, modelName, contentsParts);
+          projectData._modelUsed = modelName;
+          renderProject(projectData);
+          const noteSuffix = modelName !== modelQueue[0]
+            ? ` (تم التحويل تلقائياً من ${modelQueue[0]} بسبب الضغط المؤقت)`
+            : '';
+          showToast(`تم تصميم الآلة بنجاح عبر ${modelName}${noteSuffix}.`, 'success');
+          document.getElementById('loadingBox').classList.add('hidden');
+          document.getElementById('generateBtn').disabled = false;
+          return;
+        } catch (err) {
+          lastError = err;
+        }
       }
+
+      showToast(`تعذر إتمام الطلب بعد تجربة النماذج المتاحة. آخر خطأ: ${lastError?.message || 'ضغط مؤقت على الخوادم'}`, 'error');
+      document.getElementById('loadingBox').classList.add('hidden');
+      document.getElementById('generateBtn').disabled = false;
     }
 
     function renderProject(data) {
