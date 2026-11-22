@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#070b19" />
-  <title>WALOW BLUEPRINT PRO — استوديو التصميم الهندسي والمحاكاة 3D</title>
+  <title>WALOW BLUEPRINT PRO — استوديو ابتكار الآلات والمحاكاة 3D</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -68,13 +68,13 @@
           <h1 class="font-black text-base md:text-lg tracking-wide text-white truncate">WALOW BLUEPRINT</h1>
           <span class="text-[11px] px-2 py-0.5 rounded-full bg-purple-600/40 border border-purple-400/40 text-purple-200 font-bold">PRO AI STUDIO</span>
         </div>
-        <p class="text-[11px] text-blue-300/80 truncate">استوديو تصميم الهاردوير، 3D، المحاكاة والبرمجة</p>
+        <p class="text-[11px] text-blue-300/80 truncate">استوديو ابتكار أي آلة أو جهاز، 3D، المحاكاة والبرمجة</p>
       </div>
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
       <button onclick="saveCurrentProjectToLibrary()" type="button" class="px-3 py-2 rounded-xl text-xs font-bold border border-purple-500/50 bg-purple-500/15 text-purple-200 hover:bg-purple-500/25 transition">
-        💾 حفظ المشروع
+        💾 حفظ
       </button>
       <button onclick="openApiModal()" id="apiStatusBtn" type="button" class="px-3 py-2 rounded-xl text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition">
         🔑 مفتاح Gemini API
@@ -96,7 +96,7 @@
     <!-- صندوق الإدخال الهندسي -->
     <section class="glass rounded-2xl p-4 md:p-6 shadow-2xl space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <span class="text-sm font-bold text-blue-300">🛠️ صف الجهاز أو السيارة أو الروبوت أو القطعة الذكية التي تريد ابتكارها:</span>
+        <span class="text-sm font-bold text-blue-300">🛠️ صف أي آلة أو ابتكار أو جهاز يخطر في بالك:</span>
         <div class="flex items-center gap-2">
           <label for="engMode" class="text-xs text-slate-400">مستوى الهندسة:</label>
           <select id="engMode" class="bg-slate-900/90 border border-indigo-500/40 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500">
@@ -107,7 +107,7 @@
         </div>
       </div>
 
-      <textarea id="promptInput" rows="3" placeholder="مثال: صمم سيارة روبوتية رباعية العجلات مع بكرات نقل حركة ومحرك أمامي وحساس مسافات وتحكم لاسلكي..." class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
+      <textarea id="promptInput" rows="3" placeholder="اكتب أي آلة أو ابتكار يخطر في بالك... مثال: آلة فرز ذكية بالبكرات والسيور، رافعة هيدروليكية صغيرة، سيارة روبوتية، ساعة ذكية، أو أي اختراع جديد" class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
 
       <!-- معاينة الصورة المرفوعة أو الرسم اليدوي -->
       <div id="attachmentPreview" class="hidden flex items-center justify-between bg-slate-900/90 border border-purple-500/40 rounded-xl p-2.5 gap-2">
@@ -115,38 +115,38 @@
           <img id="previewImg" alt="معاينة المرفق" class="w-14 h-14 object-cover rounded-lg border border-blue-400/40 shrink-0" />
           <div class="min-w-0">
             <p class="text-xs font-bold text-purple-300 truncate" id="attachmentLabel">تم إرفاق مخطط / صورة للتحليل الهندسي</p>
-            <p class="text-[11px] text-slate-400">سيقوم الذكاء الاصطناعي بتفكيك الأجزاء وبناء النموذج بناءً عليها</p>
+            <p class="text-[11px] text-slate-400">سيتم تحليلها عند الضغط على زر الاستجابة عند الطلب</p>
           </div>
         </div>
         <button onclick="clearAttachment()" type="button" class="text-xs px-2.5 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/40 shrink-0">حذف ✕</button>
       </div>
 
-      <!-- شريط الأدوات وزر التوليد -->
+      <!-- شريط الأدوات وزر الاستجابة عند الطلب -->
       <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div class="flex flex-wrap items-center gap-2">
           <button onclick="startVoiceInput()" type="button" class="px-3 py-2 rounded-xl bg-indigo-950/70 hover:bg-indigo-900/70 border border-indigo-400/30 text-xs font-semibold flex items-center gap-1.5 text-indigo-200">
             🎙️ إملاء صوتي
           </button>
           <label class="cursor-pointer px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5">
-            🖼️ رفع صورة جهاز
+            🖼️ رفع صورة
             <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
           </label>
           <button onclick="openSketchModal()" type="button" class="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-purple-500/30 text-xs font-semibold flex items-center gap-1.5">
-            ✏️ ارسم فكرتك يدوياً
+            ✏️ ارسم يدوياً
           </button>
           <button onclick="loadDemoProject('car')" type="button" class="px-3 py-2 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-400/25 text-xs text-emerald-200">
-            🚗 تجربة: سيارة وبكرات
+            🚗 نموذج: سيارة وبكرات
           </button>
           <button onclick="loadDemoProject('tank')" type="button" class="px-3 py-2 rounded-xl bg-blue-950/60 hover:bg-blue-900/60 border border-blue-400/20 text-xs text-blue-200">
-            ⚡ تجربة: دبابة RC
+            ⚡ نموذج: دبابة RC
           </button>
           <button onclick="loadDemoProject('drone')" type="button" class="px-3 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-400/20 text-xs text-purple-200">
-            🚁 تجربة: درون ذكي
+            🚁 نموذج: درون ذكي
           </button>
         </div>
 
-        <button onclick="generateHardware()" id="generateBtn" type="button" class="glow-btn px-6 py-2.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 w-full sm:w-auto">
-          <span>🚀 ابتكار التصميم الهندسي</span>
+        <button onclick="requestAiOnDemand()" id="generateBtn" type="button" class="glow-btn px-6 py-2.5 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 w-full sm:w-auto">
+          <span>⚡ استدعاء الذكاء الاصطناعي الآن</span>
         </button>
       </div>
     </section>
@@ -154,7 +154,7 @@
     <!-- مؤشر التحميل -->
     <div id="loadingBox" class="hidden glass rounded-2xl p-8 text-center space-y-3">
       <div class="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
-      <p class="font-bold text-blue-300 text-base">جاري هندسة القطع، حساب التيار، وبناء المجسم ثلاثي الأبعاد...</p>
+      <p class="font-bold text-blue-300 text-base">جاري ابتكار الآلة وهندسة القطع وبناء المجسم ثلاثي الأبعاد...</p>
       <p class="text-xs text-slate-400" id="loadingModelInfo">النموذج النشط: gemini-3.8-flash</p>
     </div>
 
@@ -166,12 +166,12 @@
         <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-700/60 pb-4">
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
-              <span class="px-2.5 py-0.5 rounded-md bg-blue-600/30 text-blue-300 text-xs font-bold" id="resCategory">HARDWARE SYSTEM</span>
+              <span class="px-2.5 py-0.5 rounded-md bg-blue-600/30 text-blue-300 text-xs font-bold" id="resCategory">INVENTION & MACHINE</span>
               <span class="text-xs text-slate-400 mono" id="resPartsCount">0 PARTS</span>
               <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 mono" id="resModelUsed">gemini-3.8-flash</span>
             </div>
-            <h2 class="text-xl md:text-2xl font-black text-white pt-1" id="resTitle">اسم المشروع</h2>
-            <p class="text-sm text-slate-300" id="resSummary">وصف المشروع</p>
+            <h2 class="text-xl md:text-2xl font-black text-white pt-1" id="resTitle">اسم الآلة أو الابتكار</h2>
+            <p class="text-sm text-slate-300" id="resSummary">وصف الابتكار</p>
           </div>
           <div class="flex flex-wrap gap-2 shrink-0">
             <button onclick="exportProjectJSON()" type="button" class="px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/40 text-indigo-200 text-xs font-bold">
@@ -236,10 +236,10 @@
           </div>
         </div>
 
-        <!-- لوحة التحكم بحركة القطع أو السيارة/الروبوت بالكامل -->
+        <!-- لوحة التحكم بحركة القطع أو الآلة بالكامل -->
         <div class="bg-slate-950/85 border border-indigo-500/35 rounded-xl p-3.5 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-xs font-bold text-purple-300">⚙️ مختبر تحريك القطع والمركبات (Motion Lab):</span>
+            <span class="text-xs font-bold text-purple-300">⚙️ مختبر تحريك القطع والآلات (Motion Lab):</span>
             <div class="flex flex-wrap items-center gap-2">
               <button onclick="toggleMotionPlayback()" id="motionPlayBtn" type="button" class="px-3 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-xs font-bold text-emerald-200">
                 ⏸️ إيقاف الحركة التلقائية
@@ -254,7 +254,7 @@
             <div>
               <label for="motionTargetSelect" class="text-[11px] text-slate-400 block mb-1">الهدف المتحرك:</label>
               <select id="motionTargetSelect" onchange="syncMotionControlsFromTarget()" class="w-full bg-slate-900 border border-blue-500/30 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none">
-                <option value="__ALL__">🚗 الروبوت / السيارة بالكامل</option>
+                <option value="__ALL__">⚙️ الآلة / المركبة بالكامل</option>
               </select>
             </div>
 
@@ -265,7 +265,7 @@
                 <option value="spin">دوران مستمر (بكرة / مروحة / عجلة)</option>
                 <option value="oscillate">تذبذب زاوي (برج / ذراع / محرك)</option>
                 <option value="linear">حركة خطية ذهاب وإياب</option>
-                <option value="path">مسار تلقائي دائري (للجهاز بالكامل)</option>
+                <option value="path">مسار تلقائي دائري (للآلة بالكامل)</option>
               </select>
             </div>
 
@@ -284,7 +284,7 @@
             </div>
           </div>
 
-          <!-- تعديل أبعاد ولون وموضع القطعة المختارة مباشرة -->
+          <!-- تعديل أبعاد ولون القطعة المختارة مباشرة -->
           <div id="partInspectorBox" class="hidden grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t border-slate-800/80 items-end">
             <div>
               <label for="editSizeX" class="text-[10px] text-slate-400 block">العرض (X)</label>
@@ -307,9 +307,9 @@
             </button>
           </div>
 
-          <!-- أزرار القيادة المباشرة للسيارة أو الروبوت بالكامل -->
+          <!-- أزرار القيادة المباشرة للآلة أو المركبة بالكامل -->
           <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
-            <span class="text-[11px] text-slate-400">قيادة السيارة / الروبوت كاملاً (أو استخدم أسهم لوحة المفاتيح):</span>
+            <span class="text-[11px] text-slate-400">تحريك الآلة أو المركبة بالكامل (أو استخدم أسهم لوحة المفاتيح):</span>
             <div class="flex flex-wrap items-center gap-1.5" dir="ltr">
               <button onclick="driveAssembly(0, 0.45, 0)" type="button" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">▲ للأمام</button>
               <button onclick="driveAssembly(0, -0.45, 0)" type="button" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">▼ للخلف</button>
@@ -398,11 +398,11 @@
       <div id="savedLibraryList" class="grid md:grid-cols-3 gap-3"></div>
     </section>
 
-    <!-- مشاريع المجتمع الجاهزة -->
+    <!-- نماذج جاهزة للاستكشاف المحلي -->
     <section class="glass rounded-2xl p-4 md:p-5 space-y-3">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <h3 class="text-sm font-bold text-purple-300">🌐 نماذج هندسية وحركية جاهزة للاستكشاف والتعديل الفوري</h3>
-        <span class="text-[11px] text-slate-400">انقر لفتح التصميم في العارض 3D</span>
+        <h3 class="text-sm font-bold text-purple-300">🌐 نماذج محلية جاهزة للمعاينة دون استدعاء API</h3>
+        <span class="text-[11px] text-slate-400">انقر لفتح النموذج المحلي في العارض 3D</span>
       </div>
       <div class="grid md:grid-cols-3 gap-3">
         <div onclick="loadDemoProject('car')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-emerald-500/25 rounded-xl p-3.5 transition space-y-1.5">
@@ -410,7 +410,7 @@
             <span class="text-xs font-bold text-emerald-400">VEHICLE & PULLEYS</span>
             <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 mono">7 PARTS</span>
           </div>
-          <h4 class="font-bold text-white text-sm">سيارة روبوتية رباعية العجلات وبكرات</h4>
+          <h4 class="font-bold text-white text-sm">سيارة روبوتية رباعية العجلات وبكرات نقل</h4>
           <p class="text-xs text-slate-400">4 عجلات دوارة، بكرتا نقل حركة، محرك أمامي، وقيادة كاملة للسيارة.</p>
         </div>
 
@@ -467,13 +467,13 @@
   <div id="sketchModal" class="hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
     <div class="glass max-w-lg w-full rounded-2xl p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <h3 class="font-bold text-sm text-purple-300">✏️ ارسم مخطط الجهاز بيدك وسيحوله الذكاء الاصطناعي إلى واقع</h3>
+        <h3 class="font-bold text-sm text-purple-300">✏️ ارسم مخطط الآلة أو الابتكار بيدك</h3>
         <button onclick="closeSketchModal()" type="button" class="text-slate-400 hover:text-white">✕</button>
       </div>
       <canvas id="sketchCanvas" width="460" height="300" class="w-full bg-slate-950 border border-blue-500/40 rounded-xl touch-none cursor-crosshair"></canvas>
       <div class="flex justify-between items-center">
         <button onclick="clearSketch()" type="button" class="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs font-bold">مسح اللوحة</button>
-        <button onclick="saveSketch()" type="button" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">اعتماد الرسم للتحليل ✓</button>
+        <button onclick="saveSketch()" type="button" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">اعتماد الرسم للطلب ✓</button>
       </div>
     </div>
   </div>
@@ -494,13 +494,7 @@
       updateApiButtonState();
       initSketchPad();
       renderSavedLibrary();
-      const savedProject = localStorage.getItem('walow_last_project');
-      if (savedProject) {
-        try {
-          renderProject(JSON.parse(savedProject), false);
-          return;
-        } catch (_) {}
-      }
+      // لا يتم استدعاء الذكاء الاصطناعي تلقائياً عند التحميل؛ يبدأ بعرض نموذج محلي جاهز حتى تضغط زر الطلب
       loadDemoProject('car');
     });
 
@@ -650,20 +644,21 @@
       rec.start();
     }
 
-    async function generateHardware() {
+    // استدعاء الذكاء الاصطناعي عند الطلب فقط عند الضغط على الزر المخصص
+    async function requestAiOnDemand() {
       hideToast();
       const apiKey = (localStorage.getItem('walow_gemini_key') || '').trim();
       const modelName = getActiveModel();
       if (!apiKey) {
         openApiModal();
-        showToast('يرجى إدخال مفتاح Gemini API أولاً لتفعيل التوليد.', 'error');
+        showToast('يرجى إدخال مفتاح Gemini API أولاً ثم اضغط زر الاستدعاء عند الطلب.', 'error');
         return;
       }
 
       const promptText = document.getElementById('promptInput').value.trim();
       const mode = document.getElementById('engMode').value;
       if (!promptText && !attachedImageBase64) {
-        showToast('يرجى كتابة وصف للجهاز أو إرفاق صورة/رسم أولاً.', 'error');
+        showToast('اكتب وصف أي آلة أو ابتكار يخطر في بالك أو أرفق صورة/رسماً قبل الضغط على زر الطلب.', 'error');
         return;
       }
 
@@ -671,25 +666,25 @@
       document.getElementById('loadingBox').classList.remove('hidden');
       document.getElementById('generateBtn').disabled = true;
 
-      const systemPrompt = `أنت كبير مهندسي ابتكار الهاردوير والأنظمة المدمجة والمحاكاة ثلاثية الأبعاد.
-مهمتك تحويل فكرة المستخدم (أو الصورة/الرسم المرفق) إلى تصميم هندسي متكامل بصيغة JSON فقط بدون أي نص إضافي أو علامات markdown.
+      const systemPrompt = `أنت كبير مهندسي ابتكار الآلات والأنظمة الميكانيكية والإلكترونية والبرمجية.
+مهمتك تصميم وبناء أي آلة أو ابتكار أو جهاز أو أداة يطلبها المستخدم مهما كانت فكرته، وتحويلها إلى مخطط هندسي كامل بصيغة JSON فقط بدون أي نص إضافي أو علامات markdown.
 مستوى الهندسة المطلوب: ${mode}.
 يجب أن يلتزم ردك بالبنية التالية بدقة:
 {
-  "title": "اسم المشروع بالعربية",
-  "category": "تصنيف بالإنجليزية مثل VEHICLE / ROBOTICS / WEARABLE",
-  "summary": "ملخص هندسي دقيق للمشروع بالعربية",
+  "title": "اسم الآلة أو الابتكار بالعربية",
+  "category": "تصنيف مثل UNIVERSAL MACHINE / INVENTION / ROBOTICS / MECHANISM",
+  "summary": "شرح هندسي لكيفية عمل الآلة أو الابتكار بالعربية",
   "estimatedCost": "$45",
-  "powerSpecs": "7.4V / 12W",
-  "batteryLife": "3.5 ساعات",
+  "powerSpecs": "12V / 24W",
+  "batteryLife": "3.0 ساعات",
   "difficulty": "متوسط",
   "controllerName": "ESP32-S3",
   "parts": [
     {
-      "name": "اسم القطعة",
-      "type": "Motor / Pulley / Wheel / Sensor / Chassis / Battery",
-      "role": "وظيفتها في الجهاز",
-      "alternative": "بديل أرخص",
+      "name": "اسم القطعة في الآلة",
+      "type": "Motor / Pulley / Gear / Actuator / Sensor / Frame / Power",
+      "role": "دورها الميكانيكي أو الإلكتروني في الآلة",
+      "alternative": "بديل متوفر أو اقتصادي",
       "price": "$8",
       "color": "#3b82f6",
       "shape": "box أو cylinder أو sphere",
@@ -701,16 +696,16 @@
     }
   ],
   "wiring": [
-    { "from": "ESP32 GPIO 13", "to": "Motor Driver IN1", "wireColor": "#ef4444", "note": "إشارة تحكم PWM" }
+    { "from": "ESP32 GPIO 13", "to": "Driver / Actuator", "wireColor": "#ef4444", "note": "إشارة تحكم" }
   ],
   "codeLanguage": "C++ (Arduino / ESP32)",
-  "firmwareCode": "الكود البرمجي الكامل والعملي مع التعليقات",
-  "buildSteps": ["الخطوة الأولى...", "الخطوة الثانية..."],
-  "safetyNotes": "تحذيرات مهمة حول الجهد والحرارة والتوصيل"
+  "firmwareCode": "الكود البرمجي الكامل والعملي لتشغيل الآلة مع التعليقات",
+  "buildSteps": ["الخطوة الأولى في بناء الآلة...", "الخطوة الثانية..."],
+  "safetyNotes": "تحذيرات السلامة والتشغيل الخاصة بهذه الآلة"
 }
-صمم من 5 إلى 10 قطع بحيث تشكل إحداثيات pos وأحجام size مجسماً ثلاثي الأبعاد منطقياً ومتماسكاً، واجعل العجلات أو البكرات أو المراوح تحمل motionType: "spin" والمحاور أو الأبراج تحمل "oscillate" أو "spin" حسب وظيفتها.`;
+صمم من 5 إلى 10 قطع متناسقة في الحجم size والموضع pos لتكوين مجسم ثلاثي الأبعاد واضح للآلة، واجعل القطع المتحركة تحمل motionType مناسباً (spin أو oscillate أو linear).`;
 
-      const contentsParts = [{ text: systemPrompt + '\n\nطلب المستخدم: ' + (promptText || 'حلل الصورة/الرسم المرفق وصمم الجهاز الهندسي الكامل له.') }];
+      const contentsParts = [{ text: systemPrompt + '\n\nالآلة أو الابتكار المطلوب: ' + (promptText || 'حلل الصورة/الرسم المرفق وصمم الآلة أو الابتكار الكامل له.') }];
       if (attachedImageBase64) {
         contentsParts.push({ inline_data: { mime_type: attachedMimeType, data: attachedImageBase64 } });
       }
@@ -721,7 +716,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: contentsParts }],
-            generationConfig: { response_mime_type: 'application/json', temperature: 0.4 }
+            generationConfig: { response_mime_type: 'application/json', temperature: 0.45 }
           })
         });
 
@@ -732,26 +727,22 @@
         const cleanJson = rawText.replace(/```json|```/g, '').trim();
         const projectData = JSON.parse(cleanJson);
         projectData._modelUsed = modelName;
-        renderProject(projectData, true);
-        showToast(`تم توليد التصميم الهندسي والمحاكاة بنجاح باستخدام ${modelName}.`, 'success');
+        renderProject(projectData);
+        showToast(`تمت الاستجابة لطلبك وتصميم الآلة بنجاح باستخدام ${modelName}.`, 'success');
       } catch (err) {
-        showToast(`تعذر إتمام التوليد (${modelName}): ${err.message}`, 'error');
+        showToast(`تعذر إتمام الطلب (${modelName}): ${err.message}`, 'error');
       } finally {
         document.getElementById('loadingBox').classList.add('hidden');
         document.getElementById('generateBtn').disabled = false;
       }
     }
 
-    function renderProject(data, saveToStorage = true) {
+    function renderProject(data) {
       currentProject = data;
-      if (saveToStorage) {
-        try { localStorage.setItem('walow_last_project', JSON.stringify(data)); } catch (_) {}
-      }
-
       const parts = Array.isArray(data.parts) ? data.parts : [];
       document.getElementById('resultsSection').classList.remove('hidden');
-      document.getElementById('resTitle').textContent = data.title || 'مشروع هندسي';
-      document.getElementById('resCategory').textContent = data.category || 'HARDWARE';
+      document.getElementById('resTitle').textContent = data.title || 'آلة مبتكرة';
+      document.getElementById('resCategory').textContent = data.category || 'INVENTION';
       document.getElementById('resSummary').textContent = data.summary || '';
       document.getElementById('resPartsCount').textContent = `${parts.length} PARTS`;
       document.getElementById('resModelUsed').textContent = data._modelUsed || getActiveModel();
@@ -773,7 +764,7 @@
           <p class="text-xs md:text-sm text-slate-200">${step}</p>
         </div>
       `).join('');
-      document.getElementById('safetyNotes').textContent = data.safetyNotes || 'افحص التوصيلات والجهد قبل توصيل البطارية.';
+      document.getElementById('safetyNotes').textContent = data.safetyNotes || 'افحص التوصيلات والجهد والأجزاء المتحركة قبل التشغيل الفعلي.';
 
       build3DScene(parts);
     }
@@ -865,7 +856,7 @@
       };
 
       const targetSelect = document.getElementById('motionTargetSelect');
-      targetSelect.innerHTML = '<option value="__ALL__">🚗 الروبوت / السيارة بالكامل</option>';
+      targetSelect.innerHTML = '<option value="__ALL__">⚙️ الآلة / المركبة بالكامل</option>';
 
       const legend = document.getElementById('partsLegend');
       legend.innerHTML = '';
@@ -1063,7 +1054,7 @@
         motionSpeed: 2.0
       };
       currentProject.parts.push(newPart);
-      renderProject(currentProject, true);
+      renderProject(currentProject);
       selectPartForMotion(currentProject.parts.length - 1);
       showToast('تمت إضافة قطعة جديدة إلى التصميم والمشهد 3D.', 'success');
     }
@@ -1078,7 +1069,7 @@
         return;
       }
       currentProject.parts.splice(idx, 1);
-      renderProject(currentProject, true);
+      renderProject(currentProject);
       showToast('تم حذف القطعة المحددة من التصميم.', 'info');
     }
 
@@ -1231,7 +1222,7 @@
     function openSavedLibraryItem(index) {
       const list = getSavedLibraryList();
       if (list[index]?.data) {
-        renderProject(list[index].data, true);
+        renderProject(list[index].data);
         showToast(`تم فتح المشروع المحفوظ: ${list[index].data.title}`, 'info');
       }
     }
@@ -1389,7 +1380,7 @@
           safetyNotes: 'قم دائماً بفك المراوح أثناء برمجة الدرون أو اختباره على الطاولة لتجنب الإصابات.'
         }
       };
-      renderProject(demos[type], true);
+      renderProject(demos[type]);
     }
   </script>
 </body>
