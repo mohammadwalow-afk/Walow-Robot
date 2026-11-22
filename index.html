@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#090d1f" />
+  <title>WALOW BLUEPRINT PRO — استوديو التصميم الهندسي بالذكاء الاصطناعي</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #070b19;
+      --bg-panel: #0f162e;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --grid-line: rgba(59, 130, 246, 0.12);
+    }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: var(--bg-deep);
+      color: #e2e8f0;
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 28px 28px;
+      overflow-x: hidden;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass {
+      background: rgba(15, 22, 46, 0.82);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+    }
+    .glow-btn {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+      transition: all 0.2s ease;
+    }
+    .glow-btn:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(59, 130, 246, 0.65); }
+    .tab-active {
+      background: linear-gradient(135deg, rgba(37,99,235,0.35), rgba(124,58,237,0.35));
+      border-color: #8b5cf6;
+      color: #fff;
+    }
+    #viewport3d { width: 100%; height: 360px; border-radius: 14px; overflow: hidden; position: relative; background: radial-gradient(circle at center, #131c3d 0%, #060914 100%); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- الشريط العلوي -->
+  <header class="glass sticky top-0 z-40 px-4 py-3 flex items-center justify-between border-b border-indigo-500/30">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl glow-btn flex items-center justify-center font-black text-white text-lg">W</div>
+      <div>
+        <h1 class="font-black text-base md:text-lg tracking-wide text-white flex items-center gap-2">
+          WALOW BLUEPRINT <span class="text-xs px-2 py-0.5 rounded-full bg-purple-600/40 border border-purple-400/40 text-purple-200">PRO AI</span>
+        </h1>
+        <p class="text-[11px] text-blue-300/80">استوديو تصميم الهاردوير، 3D، الدوائر والبرمجة</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="openApiModal()" id="apiStatusBtn" class="px-3 py-1.5 rounded-lg text-xs font-bold border border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition">
+        🔑 مفتاح Gemini API
+      </button>
+    </div>
+  </header>
+
+  <!-- المحتوى الرئيسي -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-3 md:p-6 space-y-5">
+
+    <!-- صندوق الإدخال الهندسي -->
+    <section class="glass rounded-2xl p-4 md:p-6 shadow-2xl space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span class="text-sm font-bold text-blue-300">🛠️ صف الجهاز أو الروبوت أو القطعة الذكية التي تريد ابتكارها:</span>
+        <div class="flex items-center gap-2">
+          <label class="text-xs text-slate-400">مستوى الهندسة:</label>
+          <select id="engMode" class="bg-slate-900/90 border border-indigo-500/40 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none">
+            <option value="lite">Lite — نموذج سريع</option>
+            <option value="pro" selected>Pro Engineering — هندسة متكاملة</option>
+            <option value="industrial">Industrial — تصنيع احترافي</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="relative">
+        <textarea id="promptInput" rows="3" placeholder="مثال: صمم دبابة استطلاع صغيرة متحكم بها عبر Wi-Fi مع كاميرا ليلية، حساس مسافات أمامي، بطارية ليثيوم، وهيكل قابل للطباعة ثلاثية الأبعاد..." class="w-full bg-slate-950/80 border border-blue-500/30 rounded-xl p-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
+        <button onclick="startVoiceInput()" title="إدخال صوتي" class="absolute left-3 bottom-3 w-9 h-9 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/60 border border-indigo-400/30 flex items-center justify-center text-white">
+          🎙️
+        </button>
+      </div>
+
+      <!-- معاينة الصورة المرفوعة أو الرسم اليدوي -->
+      <div id="attachmentPreview" class="hidden flex items-center justify-between bg-slate-900/90 border border-purple-500/40 rounded-xl p-2.5">
+        <div class="flex items-center gap-3">
+          <img id="previewImg" class="w-14 h-14 object-cover rounded-lg border border-blue-400/40" />
+          <div>
+            <p class="text-xs font-bold text-purple-300" id="attachmentLabel">تم إرفاق مخطط / صورة للتحليل الهندسي</p>
+            <p class="text-[11px] text-slate-400">سيقوم الذكاء الاصطناعي بتفكيك الأجزاء وبناء النموذج بناءً عليها</p>
+          </div>
+        </div>
+        <button onclick="clearAttachment()" class="text-xs px-2.5 py-1 rounded bg-red-500/20 text-red-300 hover:bg-red-500/40">حذف ✕</button>
+      </div>
+
+      <!-- شريط الأدوات وزر التوليد -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <label class="cursor-pointer px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5">
+            🖼️ رفع صورة جهاز
+            <input type="file" id="imageUpload" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
+          </label>
+          <button onclick="openSketchModal()" class="px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-purple-500/30 text-xs font-semibold flex items-center gap-1.5">
+            ✏️ ارسم فكرتك يدوياً
+          </button>
+          <button onclick="loadDemoProject('tank')" class="px-3 py-2 rounded-xl bg-blue-950/60 hover:bg-blue-900/60 border border-blue-400/20 text-xs text-blue-200">
+            ⚡ تجربة: دبابة RC
+          </button>
+          <button onclick="loadDemoProject('drone')" class="px-3 py-2 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-400/20 text-xs text-purple-200">
+            🚁 تجربة: درون ذكي
+          </button>
+        </div>
+
+        <button onclick="generateHardware()" id="generateBtn" class="glow-btn px-6 py-2.5 rounded-xl font-bold text-sm text-white flex items-center gap-2">
+          <span>🚀 ابتكار التصميم الهندسي</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- مؤشر التحميل -->
+    <div id="loadingBox" class="hidden glass rounded-2xl p-8 text-center space-y-3">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-purple-500 rounded-full animate-spin mx-auto"></div>
+      <p class="font-bold text-blue-300 text-base">جاري هندسة القطع، حساب التيار، وبناء المجسم ثلاثي الأبعاد...</p>
+      <p class="text-xs text-slate-400">يقوم المحرك الآن بتوليد الإحداثيات الهندسية، مخطط الأسلاك، والكود البرمجي</p>
+    </div>
+
+    <!-- منطقة النتائج المتكاملة -->
+    <section id="resultsSection" class="hidden space-y-4">
+      
+      <!-- بطاقة ملخص المشروع والمؤشرات الهندسية -->
+      <div class="glass rounded-2xl p-5 space-y-4">
+        <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-700/60 pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md bg-blue-600/30 text-blue-300 text-xs font-bold" id="resCategory">HARDWARE SYSTEM</span>
+              <span class="text-xs text-slate-400 mono" id="resPartsCount">0 PARTS</span>
+            </div>
+            <h2 class="text-xl md:text-2xl font-black text-white mt-1" id="resTitle">اسم المشروع</h2>
+            <p class="text-sm text-slate-300 mt-1" id="resSummary">وصف المشروع</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="exportReport()" class="px-3 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+              📄 تصدير التقرير الهندسي
+            </button>
+          </div>
+        </div>
+
+        <!-- مؤشرات الأداء والطاقة -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-slate-950/70 border border-blue-500/20 rounded-xl p-3">
+            <span class="text-[11px] text-slate-400 block">التكلفة التقديرية</span>
+            <span class="text-lg font-black text-emerald-400 mono" id="statCost">$0</span>
+          </div>
+          <div class="bg-slate-950/70 border border-purple-500/20 rounded-xl p-3">
+            <span class="text-[11px] text-slate-400 block">استهلاك الطاقة</span>
+            <span class="text-lg font-black text-amber-400 mono" id="statPower">0W / 0V</span>
+          </div>
+          <div class="bg-slate-950/70 border border-blue-500/20 rounded-xl p-3">
+            <span class="text-[11px] text-slate-400 block">عمر البطارية المتوقع</span>
+            <span class="text-lg font-black text-blue-400" id="statBattery">--</span>
+          </div>
+          <div class="bg-slate-950/70 border border-purple-500/20 rounded-xl p-3">
+            <span class="text-[11px] text-slate-400 block">صعوبة التنفيذ</span>
+            <span class="text-lg font-black text-purple-400" id="statDifficulty">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- أزرار التبويبات -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <button onclick="switchTab('tab3d')" id="btn-tab3d" class="tab-btn tab-active glass py-2.5 px-3 rounded-xl text-xs font-bold text-center">🧊 مجسم 3D وتفكيك</button>
+        <button onclick="switchTab('tabBom')" id="btn-tabBom" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">🔩 قائمة القطع (BOM)</button>
+        <button onclick="switchTab('tabWiring')" id="btn-tabWiring" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">🔌 مخطط الأسلاك</button>
+        <button onclick="switchTab('tabCode')" id="btn-tabCode" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">💻 الكود والمحاكي</button>
+        <button onclick="switchTab('tabBuild')" id="btn-tabBuild" class="tab-btn glass py-2.5 px-3 rounded-xl text-xs font-bold text-center text-slate-300">📋 خطوات التجميع</button>
+      </div>
+
+      <!-- التبويب 1: العارض ثلاثي الأبعاد -->
+      <div id="tab3d" class="tab-content glass rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-bold text-blue-300">معاينة هندسية تفاعلية (اسحب للتدوير، قرّب للتكبير)</span>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="toggleExplode()" id="explodeBtn" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 border border-purple-400/40 text-xs font-bold text-white">
+              💥 تفكيك الأجزاء (Exploded View)
+            </button>
+            <button onclick="toggleWireframe()" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold text-white">
+              🕸️ وضع الهيكل الشبكي
+            </button>
+            <button onclick="exportOBJ()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-emerald-300">
+              ⬇️ تصدير 3D (.OBJ)
+            </button>
+          </div>
+        </div>
+        <div id="viewport3d"></div>
+        <div id="partsLegend" class="flex flex-wrap gap-2 pt-1"></div>
+      </div>
+
+      <!-- التبويب 2: قائمة القطع BOM -->
+      <div id="tabBom" class="tab-content hidden glass rounded-2xl p-4 overflow-x-auto">
+        <table class="w-full text-right text-xs md:text-sm">
+          <thead>
+            <tr class="border-b border-indigo-500/30 text-blue-300">
+              <th class="py-2.5 px-3">القطعة</th>
+              <th class="py-2.5 px-3">النوع</th>
+              <th class="py-2.5 px-3">الوظيفة الهندسية</th>
+              <th class="py-2.5 px-3">البديل الاقتصادي</th>
+              <th class="py-2.5 px-3">السعر</th>
+            </tr>
+          </thead>
+          <tbody id="bomTableBody" class="divide-y divide-slate-800"></tbody>
+        </table>
+      </div>
+
+      <!-- التبويب 3: مخطط توصيل الأسلاك SVG -->
+      <div id="tabWiring" class="tab-content hidden glass rounded-2xl p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-purple-300">مخطط توصيل الدائرة الإلكترونية (Auto-Generated Pinout)</h3>
+          <span class="text-xs text-slate-400">تأكد من مطابقة الجهد (3.3V / 5V) قبل التشغيل</span>
+        </div>
+        <div id="wiringSvgContainer" class="bg-slate-950/90 border border-indigo-500/30 rounded-xl p-4 overflow-x-auto flex justify-center"></div>
+        <div id="wiringList" class="grid md:grid-cols-2 gap-2 text-xs"></div>
+      </div>
+
+      <!-- التبويب 4: الكود البرمجي ومحاكاة Wokwi -->
+      <div id="tabCode" class="tab-content hidden glass rounded-2xl p-4 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-blue-300" id="codeLangLabel">الكود البرمجي للمتحكم</h3>
+            <p class="text-[11px] text-slate-400">جاهز للرفع مباشرة عبر Arduino IDE أو PlatformIO</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="copyCode()" class="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-xs font-bold">
+              📋 نسخ الكود
+            </button>
+            <button onclick="toggleWokwiSimulator()" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-xs font-bold text-emerald-200">
+              ⚡ تشغيل محاكي الدوائر (Wokwi)
+            </button>
+          </div>
+        </div>
+
+        <pre class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-emerald-300 mono overflow-x-auto max-h-96 dir-ltr text-left" dir="ltr"><code id="codeBlock"></code></pre>
+
+        <!-- نافذة محاكي Wokwi المدمجة -->
+        <div id="wokwiBox" class="hidden space-y-2 pt-2 border-t border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-400">🔌 مختبر المحاكاة الحية (Wokwi Simulator) — الصق الكود أعلاه وجرب الدائرة:</span>
+            <button onclick="toggleWokwiSimulator()" class="text-xs text-red-400">إغلاق المحاكي ✕</button>
+          </div>
+          <iframe src="https://wokwi.com/projects/new/esp32" class="w-full h-[460px] rounded-xl border border-indigo-500/40 bg-white" loading="lazy"></iframe>
+        </div>
+      </div>
+
+      <!-- التبويب 5: خطوات التجميع والاختبار -->
+      <div id="tabBuild" class="tab-content hidden glass rounded-2xl p-4 space-y-4">
+        <h3 class="text-sm font-bold text-blue-300">دليل التركيب الميكانيكي والاختبار الميداني</h3>
+        <div id="buildStepsList" class="space-y-3"></div>
+        <div class="bg-amber-950/40 border border-amber-500/30 rounded-xl p-3.5 space-y-1">
+          <h4 class="text-xs font-bold text-amber-300">⚠️ تحذيرات هندسية وفحص السلامة:</h4>
+          <p id="safetyNotes" class="text-xs text-amber-100/90"></p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- مشاريع المجتمع الجاهزة -->
+    <section class="glass rounded-2xl p-4 md:p-5 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-bold text-purple-300">🌐 نماذج هندسية جاهزة للاستكشاف والتعديل الفوري</h3>
+        <span class="text-[11px] text-slate-400">انقر لفتح التصميم في العارض 3D</span>
+      </div>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div onclick="loadDemoProject('tank')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-blue-500/25 rounded-xl p-3.5 transition space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-blue-400">ROBOTICS</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-200">21 قطعة</span>
+          </div>
+          <h4 class="font-bold text-white text-sm">دبابة استطلاع مجنزرة RC Tank</h4>
+          <p class="text-xs text-slate-400">تحكم ESP32-CAM، محركين DC، برج دوار، وحساس تجنب العوائق.</p>
+        </div>
+
+        <div onclick="loadDemoProject('drone')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-purple-500/25 rounded-xl p-3.5 transition space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-purple-400">AEROSPACE</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-200">18 قطعة</span>
+          </div>
+          <h4 class="font-bold text-white text-sm">درون رباعي المراوح ذاتي التوازن</h4>
+          <p class="text-xs text-slate-400">هيكل كربون، 4 محركات Brushless، حساس جيروسكوب MPU6050، وGPS.</p>
+        </div>
+
+        <div onclick="loadDemoProject('wearable')" class="cursor-pointer bg-slate-950/70 hover:bg-slate-900 border border-emerald-500/25 rounded-xl p-3.5 transition space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-emerald-400">WEARABLE</span>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200">12 قطعة</span>
+          </div>
+          <h4 class="font-bold text-white text-sm">سوار ملاحة ذكي للمكفوفين</h4>
+          <p class="text-xs text-slate-400">حساسات ليزر ToF، محركات اهتزاز تفاعلية، وبطارية تدوم 48 ساعة.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- نافذة إعداد مفتاح Gemini API -->
+  <div id="apiModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+    <div class="glass max-w-md w-full rounded-2xl p-5 space-y-4">
+      <h3 class="font-bold text-lg text-white">🔑 إعداد محرك الذكاء الاصطناعي (Gemini API)</h3>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        أدخل مفتاح <b>Google Gemini API</b> الخاص بك لتفعيل التوليد غير المحدود وتحليل الصور والرسومات. يتم حفظ المفتاح محلياً في متصفحك فقط.
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-sm text-white mono focus:outline-none" />
+      <div class="flex justify-between items-center pt-2">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-400 underline">احصل على مفتاح مجاني من هنا ↗</a>
+        <div class="flex gap-2">
+          <button onclick="closeApiModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold">إلغاء</button>
+          <button onclick="saveApiKey()" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">حفظ المفتاح</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة لوحة الرسم اليدوي -->
+  <div id="sketchModal" class="hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+    <div class="glass max-w-lg w-full rounded-2xl p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-sm text-purple-300">✏️ ارسم مخطط الجهاز بيدك وسيحوله الذكاء الاصطناعي إلى واقع</h3>
+        <button onclick="closeSketchModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <canvas id="sketchCanvas" width="460" height="300" class="w-full bg-slate-950 border border-blue-500/40 rounded-xl touch-none cursor-crosshair"></canvas>
+      <div class="flex justify-between items-center">
+        <button onclick="clearSketch()" class="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-300 text-xs font-bold">مسح اللوحة</button>
+        <button onclick="saveSketch()" class="glow-btn px-4 py-2 rounded-xl text-xs font-bold text-white">اعتماد الرسم للتحليل ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- المتغيرات العامة ---
+    let currentProject = null;
+    let attachedImageBase64 = null;
+    let attachedMimeType = "image/png";
+    let scene, camera, renderer, controls, modelGroup;
+    let isExploded = false;
+    let isWireframe = false;
+
+    // --- تهيئة التطبيق ---
+    window.addEventListener('DOMContentLoaded', () => {
+      updateApiButtonState();
+      initSketchPad();
+      // تحميل مشروع افتراضي للعرض الفوري
+      loadDemoProject('tank');
+    });
+
+    function updateApiButtonState() {
+      const key = localStorage.getItem('walow_gemini_key');
+      const btn = document.getElementById('apiStatusBtn');
+      if (key && key.startsWith('AIza')) {
+        btn.innerHTML = '🟢 المحرك متصل (API Ready)';
+        btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold border border-emerald-500/50 bg-emerald-500/15 text-emerald-300';
+      }
+    }
+
+    function openApiModal() {
+      document.getElementById('apiKeyInput').value = localStorage.getItem('walow_gemini_key') || '';
+      document.getElementById('apiModal').classList.remove('hidden');
+    }
+    function closeApiModal() { document.getElementById('apiModal').classList.add('hidden'); }
+    function saveApiKey() {
+      const val = document.getElementById('apiKeyInput').value.trim();
+      localStorage.setItem('walow_gemini_key', val);
+      updateApiButtonState();
+      closeApiModal();
+    }
+
+    // --- التعامل مع الصور والرسم ---
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      attachedMimeType = file.type;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        attachedImageBase64 = ev.target.result.split(',')[1];
+        document.getElementById('previewImg').src = ev.target.result;
+        document.getElementById('attachmentLabel').innerText = `صورة مرفقة: ${file.name}`;
+        document.getElementById('attachmentPreview').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearAttachment() {
+      attachedImageBase64 = null;
+      document.getElementById('attachmentPreview').classList.add('hidden');
+      document.getElementById('imageUpload').value = '';
+    }
+
+    // لوحة الرسم
+    let drawing = false;
+    function initSketchPad() {
+      const canvas = document.getElementById('sketchCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: (clientX - rect.left) * (canvas.width / rect.width),
+          y: (clientY - rect.top) * (canvas.height / rect.height)
+        };
+      };
+
+      const start = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); };
+      const move = (e) => { if (!drawing) return; e.preventDefault(); const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); };
+      const end = () => { drawing = false; };
+
+      canvas.addEventListener('mousedown', start);
+      canvas.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', end);
+      canvas.addEventListener('touchstart', start, { passive: false });
+      canvas.addEventListener('touchmove', move, { passive: false });
+      canvas.addEventListener('touchend', end);
+    }
+
+    function openSketchModal() { document.getElementById('sketchModal').classList.remove('hidden'); }
+    function closeSketchModal() { document.getElementById('sketchModal').classList.add('hidden'); }
+    function clearSketch() {
+      const canvas = document.getElementById('sketchCanvas');
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    }
+    function saveSketch() {
+      const canvas = document.getElementById('sketchCanvas');
+      const dataUrl = canvas.toDataURL('image/png');
+      attachedImageBase64 = dataUrl.split(',')[1];
+      attachedMimeType = 'image/png';
+      document.getElementById('previewImg').src = dataUrl;
+      document.getElementById('attachmentLabel').innerText = 'رسم هندسي يدوي مرفق';
+      document.getElementById('attachmentPreview').classList.remove('hidden');
+      closeSketchModal();
+    }
+
+    // --- الإدخال الصوتي ---
+    function startVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return alert('متصفحك لا يدعم الإدخال الصوتي المباشر.');
+      const rec = new SpeechRecognition();
+      rec.lang = 'ar-SA';
+      rec.onresult = (e) => {
+        document.getElementById('promptInput').value += ' ' + e.results[0][0].transcript;
+      };
+      rec.start();
+    }
+
+    // --- الاتصال بمحرك Gemini API ---
+    async function generateHardware() {
+      const apiKey = localStorage.getItem('walow_gemini_key');
+      if (!apiKey) {
+        openApiModal();
+        return;
+      }
+
+      const promptText = document.getElementById('promptInput').value.trim();
+      const mode = document.getElementById('engMode').value;
+      if (!promptText && !attachedImageBase64) {
+        alert('يرجى كتابة وصف للجهاز أو إرفاق صورة/رسم أولاً.');
+        return;
+      }
+
+      document.getElementById('loadingBox').classList.remove('hidden');
+      document.getElementById('generateBtn').disabled = true;
+
+      const systemPrompt = `أنت كبير مهندسي ابتكار الهاردوير والأنظمة المدمجة (Hardware & Robotics Architect).
+مهمتك تحويل فكرة المستخدم (أو الصورة/الرسم المرفق) إلى تصميم هندسي متكامل بصيغة JSON فقط بدون أي نص إضافي أو علامات markdown.
+مستوى الهندسة المطلوب: ${mode}.
+يجب أن يلتزم ردك بالبنية التالية بدقة:
+{
+  "title": "اسم المشروع بالعربية",
+  "category": "تصنيف بالإنجليزية مثل ROBOTICS / WEARABLE / IOT",
+  "summary": "ملخص هندسي دقيق للمشروع بالعربية",
+  "estimatedCost": "$45",
+  "powerSpecs": "7.4V / 12W",
+  "batteryLife": "3.5 ساعات",
+  "difficulty": "متوسط",
+  "controllerName": "ESP32-S3",
+  "parts": [
+    {
+      "name": "اسم القطعة",
+      "type": "Microcontroller / Sensor / Actuator / Chassis / Battery",
+      "role": "وظيفتها في الجهاز",
+      "alternative": "بديل أرخص",
+      "price": "$8",
+      "color": "#3b82f6",
+      "shape": "box أو cylinder أو sphere",
+      "size": [2.0, 0.5, 1.5],
+      "pos": [0, 0, 0]
+    }
+  ],
+  "wiring": [
+    { "from": "ESP32 GPIO 13", "to": "Motor Driver IN1", "wireColor": "#ef4444", "note": "إشارة تحكم PWM" }
+  ],
+  "codeLanguage": "C++ (Arduino / ESP32)",
+  "firmwareCode": "الكود البرمجي الكامل والعملي مع التعليقات",
+  "buildSteps": ["الخطوة الأولى...", "الخطوة الثانية..."],
+  "safetyNotes": "تحذيرات مهمة حول الجهد والحرارة والتوصيل"
+}
+ملاحظة مهمة لمصفوفة parts: صمم من 6 إلى 12 قطعة بحيث تشكل إحداثيات pos وأحجام size مجسماً ثلاثي الأبعاد منطقياً ومتماسكاً للجهاز (مثلاً الهيكل في الأسفل [0,0,0]، العجلات أو المراوح على الأطراف، المتحكم والحساسات فوق الهيكل).`;
+
+      const contentsParts = [{ text: systemPrompt + "\n\nطلب المستخدم: " + (promptText || "حلل الصورة/الرسم المرفق وصمم الجهاز الهندسي الكامل له.") }];
+      if (attachedImageBase64) {
+        contentsParts.push({ inline_data: { mime_type: attachedMimeType, data: attachedImageBase64 } });
+      }
+
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: contentsParts }],
+            generationConfig: { response_mime_type: "application/json", temperature: 0.4 }
+          })
+        });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const rawText = data.candidates[0].content.parts[0].text;
+        const cleanJson = rawText.replace(/```json|```/g, '').trim();
+        const projectData = JSON.parse(cleanJson);
+        renderProject(projectData);
+      } catch (err) {
+        alert('حدث خطأ أثناء الاتصال بالمحرك: ' + err.message);
+      } finally {
+        document.getElementById('loadingBox').classList.add('hidden');
+        document.getElementById('generateBtn').disabled = false;
+      }
+    }
+
+    // --- عرض بيانات المشروع في الواجهة ---
+    function renderProject(data) {
+      currentProject = data;
+      document.getElementById('resultsSection').classList.remove('hidden');
+      document.getElementById('resTitle').innerText = data.title;
+      document.getElementById('resCategory').innerText = data.category || 'HARDWARE';
+      document.getElementById('resSummary').innerText = data.summary;
+      document.getElementById('resPartsCount').innerText = `${data.parts.length} PARTS`;
+
+      document.getElementById('statCost').innerText = data.estimatedCost;
+      document.getElementById('statPower').innerText = data.powerSpecs;
+      document.getElementById('statBattery').innerText = data.batteryLife;
+      document.getElementById('statDifficulty').innerText = data.difficulty;
+
+      // 1. جدول القطع BOM
+      const bomBody = document.getElementById('bomTableBody');
+      bomBody.innerHTML = data.parts.map(p => `
+        <tr class="hover:bg-slate-900/60">
+          <td class="py-2.5 px-3 font-bold text-white flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full inline-block" style="background:${p.color || '#3b82f6'}"></span>
+            ${p.name}
+          </td>
+          <td class="py-2.5 px-3 text-slate-400 mono text-xs">${p.type}</td>
+          <td class="py-2.5 px-3 text-slate-300">${p.role}</td>
+          <td class="py-2.5 px-3 text-blue-300">${p.alternative || '-'}</td>
+          <td class="py-2.5 px-3 font-bold text-emerald-400 mono">${p.price}</td>
+        </tr>
+      `).join('');
+
+      // 2. رسم مخطط الأسلاك SVG
+      renderWiringDiagram(data);
+
+      // 3. الكود البرمجي
+      document.getElementById('codeLangLabel').innerText = `الكود البرمجي (${data.codeLanguage || 'C++'})`;
+      document.getElementById('codeBlock').textContent = data.firmwareCode;
+
+      // 4. خطوات التجميع
+      document.getElementById('buildStepsList').innerHTML = data.buildSteps.map((step, i) => `
+        <div class="flex items-start gap-3 bg-slate-950/60 border border-slate-800 rounded-xl p-3">
+          <span class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">${i + 1}</span>
+          <p class="text-xs md:text-sm text-slate-200">${step}</p>
+        </div>
+      `).join('');
+      document.getElementById('safetyNotes').innerText = data.safetyNotes;
+
+      // 5. بناء المشهد ثلاثي الأبعاد
+      build3DScene(data.parts);
+    }
+
+    // --- رسم مخطط التوصيل الكهربائي بصيغة SVG ---
+    function renderWiringDiagram(data) {
+      const wires = data.wiring || [];
+      const h = Math.max(220, wires.length * 46 + 60);
+      let svg = `<svg width="620" height="${h}" viewBox="0 0 620 ${h}" xmlns="http://www.w3.org/2000/svg" class="max-w-full">
+        <rect x="20" y="20" width="170" height="${h - 40}" rx="12" fill="#1e1b4b" stroke="#6366f1" stroke-width="2"/>
+        <text x="105" y="48" fill="#a5b4fc" font-size="13" font-weight="bold" text-anchor="middle">${data.controllerName || 'MICROCONTROLLER'}</text>`;
+
+      wires.forEach((w, idx) => {
+        const y = 80 + idx * 42;
+        const color = w.wireColor || '#38bdf8';
+        svg += `
+          <circle cx="190" cy="${y}" r="5" fill="${color}"/>
+          <text x="180" y="${y + 4}" fill="#e2e8f0" font-size="11" text-anchor="end" font-family="monospace">${w.from}</text>
+          <path d="M 195 ${y} C 280 ${y}, 330 ${y}, 415 ${y}" stroke="${color}" stroke-width="2.5" fill="none"/>
+          <rect x="420" y="${y - 14}" width="180" height="28" rx="6" fill="#0f172a" stroke="${color}" stroke-width="1.5"/>
+          <text x="510" y="${y + 4}" fill="#ffffff" font-size="11" text-anchor="middle" font-family="monospace">${w.to}</text>
+        `;
+      });
+      svg += `</svg>`;
+      document.getElementById('wiringSvgContainer').innerHTML = svg;
+
+      document.getElementById('wiringList').innerHTML = wires.map(w => `
+        <div class="bg-slate-950/70 border border-slate-800 rounded-lg p-2.5 flex items-center justify-between">
+          <span class="mono text-blue-300">${w.from} ➔ ${w.to}</span>
+          <span class="text-slate-400">${w.note || ''}</span>
+        </div>
+      `).join('');
+    }
+
+    // --- محرك Three.js لبناء المجسم ثلاثي الأبعاد ---
+    function build3DScene(parts) {
+      const container = document.getElementById('viewport3d');
+      container.innerHTML = '';
+      isExploded = false;
+
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(5, 4, 6);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      // الإضاءة والشبكة الأرضية
+      const grid = new THREE.GridHelper(12, 24, 0x3b82f6, 0x1e293b);
+      grid.position.y = -1.2;
+      scene.add(grid);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+      const dirLight = new THREE.DirectionalLight(0xa855f7, 0.9);
+      dirLight.position.set(5, 10, 7);
+      scene.add(dirLight);
+      const blueLight = new THREE.PointLight(0x3b82f6, 1, 20);
+      blueLight.position.set(-5, 4, -5);
+      scene.add(blueLight);
+
+      modelGroup = new THREE.Group();
+      const legend = document.getElementById('partsLegend');
+      legend.innerHTML = '';
+
+      parts.forEach((p, idx) => {
+        const s = p.size || [1, 0.5, 1];
+        const pos = p.pos || [0, idx * 0.4, 0];
+        let geom;
+        if (p.shape === 'cylinder') {
+          geom = new THREE.CylinderGeometry(s[0] / 2, s[0] / 2, s[1], 24);
+        } else if (p.shape === 'sphere') {
+          geom = new THREE.SphereGeometry(s[0] / 2, 24, 24);
+        } else {
+          geom = new THREE.BoxGeometry(s[0], s[1], s[2]);
+        }
+
+        const mat = new THREE.MeshStandardMaterial({
+          color: p.color || '#3b82f6',
+          metalness: 0.45,
+          roughness: 0.35,
+          wireframe: isWireframe
+        });
+
+        const mesh = new THREE.Mesh(geom, mat);
+        mesh.position.set(pos[0], pos[1], pos[2]);
+        mesh.userData = { origPos: new THREE.Vector3(pos[0], pos[1], pos[2]), name: p.name };
+        modelGroup.add(mesh);
+
+        legend.innerHTML += `<span class="text-[11px] px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 flex items-center gap-1.5">
+          <i class="w-2.5 h-2.5 rounded-full inline-block" style="background:${p.color || '#3b82f6'}"></i>${p.name}
+        </span>`;
+      });
+
+      scene.add(modelGroup);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    function toggleExplode() {
+      if (!modelGroup) return;
+      isExploded = !isExploded;
+      modelGroup.children.forEach((mesh) => {
+        const orig = mesh.userData.origPos;
+        if (isExploded) {
+          mesh.position.set(orig.x * 1.9, orig.y * 2.2 + 0.6, orig.z * 1.9);
+        } else {
+          mesh.position.copy(orig);
+        }
+      });
+    }
+
+    function toggleWireframe() {
+      if (!modelGroup) return;
+      isWireframe = !isWireframe;
+      modelGroup.children.forEach(m => m.material.wireframe = isWireframe);
+    }
+
+    // تصدير مجسم 3D بصيغة OBJ لفتحه في Blender / Godot
+    function exportOBJ() {
+      if (!modelGroup) return;
+      let objContent = "# Exported from WALOW BLUEPRINT PRO\n";
+      let vertexOffset = 1;
+      modelGroup.children.forEach((mesh, idx) => {
+        objContent += `o Part_${idx}_${mesh.userData.name.replace(/\s+/g, '_')}\n`;
+        const posAttr = mesh.geometry.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+          const v = new THREE.Vector3().fromBufferAttribute(posAttr, i).applyMatrix4(mesh.matrixWorld);
+          objContent += `v ${v.x.toFixed(4)} ${v.y.toFixed(4)} ${v.z.toFixed(4)}\n`;
+        }
+        const indexAttr = mesh.geometry.index;
+        if (indexAttr) {
+          for (let i = 0; i < indexAttr.count; i += 3) {
+            const a = indexAttr.getX(i) + vertexOffset;
+            const b = indexAttr.getX(i + 1) + vertexOffset;
+            const c = indexAttr.getX(i + 2) + vertexOffset;
+            objContent += `f ${a} ${b} ${c}\n`;
+          }
+        }
+        vertexOffset += posAttr.count;
+      });
+      downloadFile('walow_hardware_model.obj', objContent, 'text/plain');
+    }
+
+    // --- التبويبات والأدوات المساعدة ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-active');
+        btn.classList.add('text-slate-300');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('btn-' + tabId);
+      activeBtn.classList.add('tab-active');
+      activeBtn.classList.remove('text-slate-300');
+    }
+
+    function copyCode() {
+      navigator.clipboard.writeText(document.getElementById('codeBlock').textContent);
+      alert('تم نسخ الكود البرمجي بنجاح!');
+    }
+
+    function toggleWokwiSimulator() {
+      document.getElementById('wokwiBox').classList.toggle('hidden');
+    }
+
+    function exportReport() {
+      if (!currentProject) return;
+      const md = `# ${currentProject.title}\n\n${currentProject.summary}\n\n## القطع المطلوبة\n` +
+        currentProject.parts.map(p => `- **${p.name}** (${p.price}): ${p.role}`).join('\n') +
+        `\n\n## الكود البرمجي\n\`\`\`cpp\n${currentProject.firmwareCode}\n\`\`\``;
+      downloadFile('Blueprint_Engineering_Report.md', md, 'text/markdown');
+    }
+
+    function downloadFile(filename, content, type) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([content], { type }));
+      a.download = filename;
+      a.click();
+    }
+
+    // --- مشاريع جاهزة للعرض الفوري بدون الحاجة لمفتاح API ---
+    function loadDemoProject(type) {
+      const demos = {
+        tank: {
+          title: "دبابة استطلاع مجنزرة ذكية (RC Tactical Tank)",
+          category: "ROBOTICS & FPV",
+          summary: "مركبة مجنزرة عالية العزم مزودة بكاميرا بث مباشر Wi-Fi، برج دوار 180 درجة، وحساس تجنب العوائق بالموجات فوق الصوتية.",
+          estimatedCost: "$54",
+          powerSpecs: "7.4V / 18W",
+          batteryLife: "2.5 ساعة",
+          difficulty: "متوسط",
+          controllerName: "ESP32-CAM",
+          parts: [
+            { name: "الشاسيه الرئيسي 3D", type: "Chassis", role: "الهيكل الحامل للمحركات والبطارية", alternative: "ألواح أكرليك", price: "$6", color: "#334155", shape: "box", size: [2.6, 0.5, 1.8], pos: [0, 0, 0] },
+            { name: "الجنزير الأيمن", type: "Actuator", role: "نقل الحركة على التضاريس الوعرة", alternative: "عجلات مطاطية", price: "$9", color: "#0f172a", shape: "box", size: [2.8, 0.45, 0.35], pos: [0, -0.1, 1.05] },
+            { name: "الجنزير الأيسر", type: "Actuator", role: "نقل الحركة والتوجيه التفاضلي", alternative: "عجلات مطاطية", price: "$9", color: "#0f172a", shape: "box", size: [2.8, 0.45, 0.35], pos: [0, -0.1, -1.05] },
+            { name: "برج الكاميرا الدوار", type: "Servo Turret", role: "توجيه الكاميرا أفقياً", alternative: "تثبيت مباشر", price: "$4", color: "#3b82f6", shape: "cylinder", size: [0.9, 0.45, 0.9], pos: [0.2, 0.48, 0] },
+            { name: "وحدة ESP32-CAM", type: "Microcontroller", role: "المعالج الرئيسي وبث الفيديو", alternative: "ESP32 + OV2640", price: "$10", color: "#8b5cf6", shape: "box", size: [0.5, 0.4, 0.5], pos: [0.4, 0.85, 0] },
+            { name: "حساس المسافة HC-SR04", type: "Sensor", role: "منع الاصطدام التلقائي", alternative: "حساس ليزر VL53L0X", price: "$2", color: "#10b981", shape: "box", size: [0.2, 0.25, 0.7], pos: [1.35, 0.1, 0] },
+            { name: "بطارية Li-Po 2S", type: "Battery", role: "تغذية المحركات والمتحكم", alternative: "بطاريتين 18650", price: "$14", color: "#f59e0b", shape: "box", size: [1.1, 0.3, 0.8], pos: [-0.6, 0.4, 0] }
+          ],
+          wiring: [
+            { from: "ESP32 GPIO 12", to: "L298N IN1 (يمين)", wireColor: "#3b82f6", note: "دفع للأمام" },
+            { from: "ESP32 GPIO 13", to: "L298N IN2 (يسار)", wireColor: "#8b5cf6", note: "دفع عكسي" },
+            { from: "ESP32 GPIO 14", to: "Servo Turret PWM", wireColor: "#f59e0b", note: "تدوير البرج" },
+            { from: "ESP32 GPIO 15", to: "HC-SR04 Trig/Echo", wireColor: "#10b981", note: "قياس المسافة" }
+          ],
+          codeLanguage: "C++ (ESP32 Arduino)",
+          firmwareCode: `#include <ESP32Servo.h>\n\n#define MOTOR_R 12\n#define MOTOR_L 13\n#define SERVO_PIN 14\n#define TRIG_PIN 15\n\nServo turret;\n\nvoid setup() {\n  Serial.begin(115200);\n  pinMode(MOTOR_R, OUTPUT);\n  pinMode(MOTOR_L, OUTPUT);\n  turret.attach(SERVO_PIN);\n  turret.write(90);\n}\n\nvoid loop() {\n  // تحريك الدبابة للأمام مع مسح البرج\n  digitalWrite(MOTOR_R, HIGH);\n  digitalWrite(MOTOR_L, HIGH);\n  delay(1000);\n}`,
+          buildSteps: [
+            "اطبع الشاسيه والبرج بتقنية 3D باستخدام مادة PETG لتحمل الصدمات.",
+            "ثبّت محركي الـ DC داخل الجنازير واربطهما بوحدة القيادة L298N.",
+            "ركّب محرك السيرفو في منتصف الشاسيه وثبّت فوقه وحدة ESP32-CAM.",
+            "وصّل منظم الجهد 5V لحماية الكاميرا من تيار البطارية المرتفع."
+          ],
+          safetyNotes: "لا توصل بطارية 7.4V مباشرة إلى مدخل 5V في ESP32-CAM؛ استخدم منظم جهد LM2596 مضبوط على 5 فولت بدقة."
+        },
+        drone: {
+          title: "درون رباعي المراوح ذاتي التوازن (Quadcopter X4)",
+          category: "AEROSPACE",
+          summary: "طائرة مسيّرة خفيفة الوزن مزودة بنظام تثبيت الارتفاع والاتجاه مع إمكانية العودة التلقائية لنقطة الإقلاع.",
+          estimatedCost: "$88",
+          powerSpecs: "11.1V / 95W",
+          batteryLife: "18 دقيقة",
+          difficulty: "متقدم",
+          controllerName: "ESP32-S3 Flight Controller",
+          parts: [
+            { name: "الإطار المركزي", type: "Frame", role: "تجميع الأذرع والبطارية", alternative: "إطار F450", price: "$12", color: "#1e293b", shape: "box", size: [1.2, 0.3, 1.2], pos: [0, 0, 0] },
+            { name: "مروحة أمامية يمنى", type: "Propeller", role: "توليد الرفع (CCW)", alternative: "مراوح 5 إنش", price: "$15", color: "#3b82f6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [1.1, 0.25, 1.1] },
+            { name: "مروحة أمامية يسرى", type: "Propeller", role: "توليد الرفع (CW)", alternative: "مراوح 5 إنش", price: "$15", color: "#8b5cf6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [1.1, 0.25, -1.1] },
+            { name: "مروحة خلفية يمنى", type: "Propeller", role: "توليد الرفع (CW)", alternative: "مراوح 5 إنش", price: "$15", color: "#8b5cf6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [-1.1, 0.25, 1.1] },
+            { name: "مروحة خلفية يسرى", type: "Propeller", role: "توليد الرفع (CCW)", alternative: "مراوح 5 إنش", price: "$15", color: "#3b82f6", shape: "cylinder", size: [1.1, 0.1, 1.1], pos: [-1.1, 0.25, -1.1] },
+            { name: "حساس التوازن MPU6050", type: "Sensor", role: "قياس الميلان والتسارع 6 محاور", alternative: "BMI160", price: "$4", color: "#10b981", shape: "box", size: [0.4, 0.15, 0.4], pos: [0, 0.25, 0] }
+          ],
+          wiring: [
+            { from: "ESP32 GPIO 4..7", to: "4x ESC Signal", wireColor: "#3b82f6", note: "تحكم سرعة المحركات" },
+            { from: "ESP32 SDA/SCL", to: "MPU6050 Gyro", wireColor: "#10b981", note: "ناقل I2C للتوازن" }
+          ],
+          codeLanguage: "C++ (PID Flight Loop)",
+          firmwareCode: `#include <Wire.h>\nvoid setup() {\n  Wire.begin();\n  Serial.begin(115200);\n  // تهيئة حساس الجيروسكوب ومخارج PWM للمحركات\n}\nvoid loop() {\n  // حلقة PID لتعديل سرعة المراوح 250 مرة في الثانية\n}`,
+          buildSteps: [
+            "ثبّت المحركات الأربعة على أطراف الأذرع وتأكد من اتجاه دوران كل مروحة.",
+            "ضع حساس MPU6050 في مركز ثقل الطائرة تماماً لتقليل الاهتزازات.",
+            "عاير وحدات التحكم بالسرعة (ESC) قبل تركيب المراوح."
+          ],
+          safetyNotes: "قم دائماً بفك المراوح أثناء برمجة الدرون أو اختباره على الطاولة لتجنب الإصابات."
+        },
+        wearable: {
+          title: "سوار الملاحة الذكي بالنبض (Haptic Nav Band)",
+          category: "WEARABLE TECH",
+          summary: "سوار معصم خفيف يرشد مرتديه عبر نبضات اهتزاز دقيقة لتجنب العوائق أو اتباع مسار GPS بدون الحاجة للنظر للشاشة.",
+          estimatedCost: "$29",
+          powerSpecs: "3.7V / 1.2W",
+          batteryLife: "48 ساعة",
+          difficulty: "سهل",
+          controllerName: "ESP32-C3 Mini",
+          parts: [
+            { name: "هيكل السوار المرن", type: "Chassis", role: "تثبيت القطع حول المعصم", alternative: "حزام سيليكون", price: "$4", color: "#1e293b", shape: "cylinder", size: [1.6, 0.6, 1.6], pos: [0, 0, 0] },
+            { name: "حساس ليزر VL53L0X", type: "Sensor", role: "قياس المسافة بدقة مليمترية", alternative: "حساس IR", price: "$6", color: "#3b82f6", shape: "box", size: [0.4, 0.3, 0.3], pos: [0.85, 0.1, 0] },
+            { name: "محرك اهتزاز Haptic", type: "Actuator", role: "تنبيه المستخدم بالاهتزاز", alternative: "Buzzer", price: "$3", color: "#8b5cf6", shape: "cylinder", size: [0.3, 0.15, 0.3], pos: [0, 0.35, 0.7] }
+          ],
+          wiring: [
+            { from: "ESP32-C3 SDA/SCL", to: "VL53L0X Laser", wireColor: "#3b82f6", note: "قراءة المسافة" },
+            { from: "ESP32-C3 GPIO 3", to: "Haptic Motor", wireColor: "#a855f7", note: "نبض متغير الشدة" }
+          ],
+          codeLanguage: "C++ (Low Power BLE)",
+          firmwareCode: `void setup() {\n  pinMode(3, OUTPUT);\n}\nvoid loop() {\n  // زيادة تردد الاهتزاز كلما اقترب العائق\n  analogWrite(3, 180);\n  delay(200);\n}`,
+          buildSteps: [
+            "الحم أسلاك حساس الليزر ومحرك الاهتزاز بمتحكم ESP32-C3 Mini.",
+            "أدخل الدائرة وبطارية 400mAh داخل الغلاف المطبوع بمادة TPU المرنة."
+          ],
+          safetyNotes: "تأكد من عزل البطارية جيداً عن الجلد واستخدام دائرة شحن TP4056 محمية."
+        }
+      };
+      renderProject(demos[type]);
+    }
+  </script>
+</body>
+</html>
