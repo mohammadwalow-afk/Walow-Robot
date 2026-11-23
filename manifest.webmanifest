@@ -1,0 +1,31 @@
+{
+ "name": "WALOW BLUEPRINT — مصمم الآلات والمحاكي",
+ "short_name": "WALOW",
+ "description": "مصمم ومحاكي آلات ثلاثي الأبعاد: تركيب تلقائي وفيزياء دوران حقيقية",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#070b19",
+ "theme_color": "#070b19",
+ "lang": "ar",
+ "dir": "rtl",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
